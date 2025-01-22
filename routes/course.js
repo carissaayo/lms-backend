@@ -62,7 +62,7 @@ export const getSingleCourse = async (req, res) => {
 // get All Courses Available
 export const getAllCoursesAvailable = async (req, res) => {
   try {
-    const courses = await Course.find();
+    const courses = await Course.find({ deleted: false });
 
     res.status(200).json({
       message: "All courses has been fetched successfully",
@@ -79,9 +79,23 @@ export const getAllCoursesByAnInstructor = async (req, res) => {
   try {
     const { instructor } = req.params;
 
-    const courses = await Course.find({ instructor: instructor });
+    // Is the instructor deleted
+    const isTheInstructorDeleted = await User.find({
+      _id: instructor,
+      deleted: true,
+    });
+    if (isTheInstructorDeleted.name) {
+      return res.status(401).json({
+        message: "Instructor can't be found",
+        isTheInstructorDeleted,
+      });
+    }
 
-    console.log(courses);
+    const courses = await Course.find({
+      instructor: instructor,
+      deleted: false,
+    });
+
     res.status(200).json({
       message: "All courses has been fetched successfully",
       courses,
@@ -96,13 +110,23 @@ export const getAllCoursesByAnInstructor = async (req, res) => {
 export const updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    const existingCourse = await Course.findById({ _id: id });
+
+    //has the course been deleted
+    const deletedCourse = await Course.find({ _id: id, deleted: true });
+
+    if (deletedCourse) {
+      return res.status(401).json({
+        message: "course has been deleted",
+        course: deletedCourse,
+      });
+    }
+    const existingCourse = await Course.find({ _id: id, deleted: false });
 
     if (!existingCourse) {
       return res.status(400).json("Course not found");
     }
 
-    if (existingCourse.instructor !== req.user.id) {
+    if (existingCourse?.instructor !== req.user.id) {
       return res
         .status(401)
         .json("Access Denied, you can only update your course");
@@ -127,19 +151,34 @@ export const updateCourse = async (req, res) => {
 export const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    const existingCourse = await Course.findById({ _id: id });
 
-    if (!existingCourse) {
+    //has the course been deleted
+    const deletedCourse = await Course.find({ _id: id, deleted: true });
+
+    if (deletedCourse[0]?.title) {
+      return res.status(401).json({
+        message: "course has already been deleted",
+      });
+    }
+
+    const existingCourse = await Course.find({ _id: id, deleted: false });
+
+    if (!existingCourse[0]) {
       return res.status(400).json("course not found");
     }
 
-    if (existingCourse.instructor !== req.user.id) {
+    if (existingCourse[0]?.instructor !== req.user.id) {
       return res
         .status(401)
         .json("Access Denied, you can only delete your course");
     }
 
     // deleted a course
+    const deleteCourse = await Course.findByIdAndUpdate(
+      { _id: id },
+      { deleted: true },
+      { new: true }
+    );
 
     res.status(200).json({
       message: "course account has been deleted successfully",
@@ -153,6 +192,7 @@ export const deleteCourse = async (req, res) => {
 export const deleteCoursesByAnInstructor = async (req, res) => {
   try {
     const { instructor } = req.params;
+
     if (instructor !== req.user.id) {
       return res
         .status(401)

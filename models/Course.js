@@ -17,10 +17,15 @@ const courseSchema = new mongoose.Schema({
     url: {
       type: String,
       required: true,
-      unique: true,
     },
     caption: String,
   },
+  lectures: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Lecture",
+    },
+  ],
   deleted: { type: Boolean, default: false },
 });
 
