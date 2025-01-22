@@ -16,8 +16,10 @@ export const createCourse = async (req, res) => {
 
     const instructor = user.id;
     const newCourse = new Course({ ...data, instructor });
-    console.log(newCourse);
+    const addCourse = user.courses.push(newCourse);
+
     await newCourse.save();
+    await user.save();
 
     res.status(200).json({
       message: "course has been created successfully",
@@ -48,7 +50,6 @@ export const getSingleCourse = async (req, res) => {
         message: "such course isn't available",
       });
     }
-
     res.status(200).json({
       message: "course has been fecthed successfully",
       course: getAcourse,
@@ -166,8 +167,7 @@ export const deleteCourse = async (req, res) => {
     if (!existingCourse[0]) {
       return res.status(400).json("course not found");
     }
-
-    if (existingCourse[0]?.instructor !== req.user.id) {
+    if (existingCourse[0]?.instructor.toString() !== req.user.id) {
       return res
         .status(401)
         .json("Access Denied, you can only delete your course");
