@@ -3,12 +3,12 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 
 import User from "../models/User.js";
-import { response } from "express";
+
 // create user
 export const createUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email, deleted: false });
     if (existingUser) {
       return res.status(400).json("Email already in use");
     }
@@ -29,6 +29,12 @@ export const createUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    // has the user been deleted
+    const deletedUser = await User.findOne({ email, deleted: true });
+    if (deletedUser) {
+      return res.status(401).json({ message: "user has been deleted" });
+    }
+
     const existingUser = await User.findOne({ email });
     // Incorrect email
     if (!existingUser) {
@@ -85,7 +91,13 @@ export const logoutUser = async (req, res) => {
 export const getSingleUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const existingUser = await User.findById({ _id: id });
+    // has the user been deleted
+    const deletedUser = await User.findOne({ _id: id, deleted: true });
+    if (deletedUser) {
+      return res.status(401).json({ message: "user has been deleted" });
+    }
+
+    const existingUser = await User.find({ _id: id, deleted: false });
 
     if (!existingUser) {
       return res.status(400).json("User not found");
@@ -102,10 +114,10 @@ export const getSingleUser = async (req, res) => {
   }
 };
 
-// get a user
+// get all users
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find({ deleted: false });
 
     res.status(200).json({
       message: "All users fetched successfully",
@@ -121,7 +133,13 @@ export const getAllUsers = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
   try {
     const { id } = req.params;
-    const existingUser = await User.findById({ _id: id });
+    // has the user been deleted
+    const deletedUser = await User.findOne({ _id: id, deleted: true });
+    if (deletedUser) {
+      return res.status(401).json({ message: "user has been deleted" });
+    }
+
+    const existingUser = await User.find({ _id: id, deleted: true });
 
     if (!existingUser) {
       return res.status(400).json("User not found");
@@ -142,13 +160,6 @@ export const updateUserProfile = async (req, res) => {
       }
     }
 
-    if (req.body.name) {
-      // Check if the new email has been used already
-      const checkNameAvailability = await User.findOne({ name });
-      if (checkNameAvailability) {
-        return res.status(401).json("Name has been used already");
-      }
-    }
     const newData = req.body;
     const updatedUser = await User.findByIdAndUpdate(id, newData, {
       new: true,
@@ -168,7 +179,7 @@ export const updateUserProfile = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const existingUser = await User.findByIdAndDelete({ _id: id });
+    const existingUser = await User.findById({ _id: id });
 
     if (!existingUser) {
       return res.status(400).json("User not found");
@@ -179,6 +190,14 @@ export const deleteUser = async (req, res) => {
         .status(401)
         .json("Access Denied, you can only delete your account");
     }
+
+    const deletedUser = await User.findByIdAndUpdate(
+      { _id: id },
+      { deleted: true },
+      { new: true }
+    );
+
+    console.log(deletedUser);
 
     res.status(200).json({
       message: "user account has been deleted successfully",

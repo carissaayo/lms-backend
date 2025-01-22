@@ -43,9 +43,9 @@ app.post("/register", createUser);
 app.post("/login", loginUser);
 app.post("/logout", logoutUser);
 app.get("/user/:id", getSingleUser);
-app.get("/users", getAllUsers);
 
 // Protected User Routes
+app.get("/users", verifyToken, getAllUsers);
 app.put("/user/:id", verifyToken, updateUserProfile);
 app.delete("/user/:id", verifyToken, deleteUser);
 

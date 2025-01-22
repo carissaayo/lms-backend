@@ -13,6 +13,15 @@ const courseSchema = new mongoose.Schema({
   category: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   price: { type: String, required: true },
+  image: {
+    url: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    caption: String,
+  },
+  deleted: { type: Boolean, default: false },
 });
 
 const User = mongoose.model("Course", courseSchema);

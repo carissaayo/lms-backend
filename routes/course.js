@@ -1,11 +1,10 @@
-import { response } from "express";
 import Course from "../models/Course.js";
 import User from "../models/User.js";
 
 // create Single course
 export const createCourse = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.user.id });
+    const user = await User.findOne({ _id: req.user.id, deleted: false });
 
     if (!user) {
       res
@@ -14,7 +13,7 @@ export const createCourse = async (req, res) => {
     }
 
     const data = req.body;
-    console.log(user);
+
     const instructor = user.id;
     const newCourse = new Course({ ...data, instructor });
     console.log(newCourse);
@@ -34,8 +33,21 @@ export const createCourse = async (req, res) => {
 export const getSingleCourse = async (req, res) => {
   try {
     const { id } = req.params;
+    const isItDeleted = await Course.find({ _id: id, deleted: true });
+
+    if (isItDeleted.title) {
+      res.status(401).json({
+        message: "course has been deleted",
+        isItDeleted,
+      });
+    }
 
     const getAcourse = await Course.findById({ _id: id });
+    if (!getAcourse) {
+      res.status(401).json({
+        message: "such course isn't available",
+      });
+    }
 
     res.status(200).json({
       message: "course has been fecthed successfully",
@@ -115,7 +127,7 @@ export const updateCourse = async (req, res) => {
 export const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    const existingCourse = await Course.findByIdAndDelete({ _id: id });
+    const existingCourse = await Course.findById({ _id: id });
 
     if (!existingCourse) {
       return res.status(400).json("course not found");
@@ -126,6 +138,8 @@ export const deleteCourse = async (req, res) => {
         .status(401)
         .json("Access Denied, you can only delete your course");
     }
+
+    // deleted a course
 
     res.status(200).json({
       message: "course account has been deleted successfully",

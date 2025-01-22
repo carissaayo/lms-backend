@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  deleted: { type: Boolean, default: false },
 });
 
 const User = mongoose.model("User", userSchema);
