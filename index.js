@@ -23,12 +23,15 @@ import {
   getSingleCourse,
   updateCourse,
 } from "./routes/course.js";
+import { createLecture } from "./routes/lectures.js";
 
 // middlewares
-import { verifyToken } from "./middleware.js";
+import { verifyToken } from "./middlewares/verifyToken.js";
+import upload from "./middlewares/fileUpload.js";
 
 const app = express();
 const port = 8080;
+
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -55,13 +58,21 @@ app.get("/courses", getAllCoursesAvailable);
 app.get("/courses/instructor/:instructor", getAllCoursesByAnInstructor);
 
 // Protected Course Routes
-app.post("/course", verifyToken, createCourse);
+app.post("/course", verifyToken, upload.single("image"), createCourse);
 app.put("/course/:id", verifyToken, updateCourse);
 app.delete("/course/:id", verifyToken, deleteCourse);
 app.delete(
   "/courses/instructor/:instructor",
   verifyToken,
   deleteCoursesByAnInstructor
+);
+
+// Protected Lectures Routes
+app.post(
+  "/:courseId/lecture",
+  verifyToken,
+  upload.single("video"),
+  createLecture
 );
 
 app.listen(port, () => {

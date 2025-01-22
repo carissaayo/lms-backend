@@ -13,9 +13,18 @@ export const createCourse = async (req, res) => {
     }
 
     const data = req.body;
-
     const instructor = user.id;
-    const newCourse = new Course({ ...data, instructor });
+    const newData = {
+      ...req.body,
+      image: {
+        url: req.file.path,
+        imageName: req.file.filename,
+        caption: req.body.caption && req.body.caption,
+      },
+      instructor,
+    };
+
+    const newCourse = new Course(newData);
     const addCourse = user.courses.push(newCourse);
 
     await newCourse.save();
