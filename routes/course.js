@@ -71,15 +71,19 @@ export const getSingleCourse = async (req, res) => {
 // get All Courses Available
 export const getAllCoursesAvailable = async (req, res) => {
   try {
+    if (!req.user.isAdmin) {
+      return res
+        .status(401)
+        .json({ message: "Acess Denied, you are not allowed" });
+    }
     const courses = await Course.find({ deleted: false });
-
-    res.status(200).json({
+    return res.status(200).json({
       message: "All courses has been fetched successfully",
       courses,
     });
   } catch (error) {
     console.log("error fetching all courses", error);
-    res.status(500).json({ message: "Course fetching  failed" });
+    return res.status(500).json({ message: "Course fetching  failed" });
   }
 };
 
@@ -175,7 +179,10 @@ export const deleteCourse = async (req, res) => {
     if (!existingCourse[0]) {
       return res.status(400).json("course not found");
     }
-    if (existingCourse[0]?.instructor.toString() !== req.user.id) {
+    if (
+      req.user.isAdmin === false &&
+      existingCourse[0]?.instructor.toString() !== req.user.id
+    ) {
       return res
         .status(401)
         .json("Access Denied, you can only delete your course");
@@ -201,7 +208,7 @@ export const deleteCoursesByAnInstructor = async (req, res) => {
   try {
     const { instructor } = req.params;
 
-    if (instructor !== req.user.id) {
+    if (req.user.isAdmin === false && instructor !== req.user.id) {
       return res
         .status(401)
         .json("Access Denied, you can only delete your courses");

@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import cookieParser from "cookie-parser";
 
 import User from "../models/User.js";
 
@@ -14,7 +13,7 @@ export const createUser = async (req, res) => {
     }
     // Bcrypt
     const saltRounds = 10;
-    const hashedPassword = bcrypt.hashSync(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     const newUser = new User({ email, name, password: hashedPassword });
     await newUser.save();
 
@@ -56,6 +55,7 @@ export const loginUser = async (req, res) => {
       email,
       name: existingUser.name,
       id: existingUser._id,
+      isAdmin: existingUser.isAdmin,
     };
 
     const secretKey = process.env.JWT_SECRET_KEY;
@@ -117,6 +117,9 @@ export const getSingleUser = async (req, res) => {
 // get all users
 export const getAllUsers = async (req, res) => {
   try {
+    if (!req.user.isAdmin) {
+      res.status(401).json({ message: "Acess Denied, you are not allowed" });
+    }
     const users = await User.find({ deleted: false });
 
     res.status(200).json({
@@ -184,8 +187,7 @@ export const deleteUser = async (req, res) => {
     if (!existingUser) {
       return res.status(400).json("User not found");
     }
-
-    if (id !== req.user.id) {
+    if (req.user.isAdmin === false && req.user.id !== id) {
       return res
         .status(401)
         .json("Access Denied, you can only delete your account");
@@ -196,8 +198,6 @@ export const deleteUser = async (req, res) => {
       { deleted: true },
       { new: true }
     );
-
-    console.log(deletedUser);
 
     res.status(200).json({
       message: "user account has been deleted successfully",

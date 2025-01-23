@@ -21,7 +21,14 @@ const userSchema = new mongoose.Schema(
         ref: "Course",
       },
     ],
+    avatar: {
+      url: { type: String },
+    },
     deleted: { type: Boolean, default: false },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

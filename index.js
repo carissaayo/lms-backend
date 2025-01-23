@@ -35,6 +35,7 @@ import {
 // middlewares
 import { verifyToken } from "./middlewares/verifyToken.js";
 import upload from "./middlewares/fileUpload.js";
+import { changePassword } from "./routes/password.js";
 
 const app = express();
 const port = 8080;
@@ -56,15 +57,16 @@ app.get("/user/:id", getSingleUser);
 
 // Protected User Routes
 app.get("/users", verifyToken, getAllUsers);
-app.put("/user/:id", verifyToken, updateUserProfile);
+app.put("/users/:id", verifyToken, updateUserProfile);
 app.put("/user/:id", verifyToken, deleteUser);
+app.post("/change-password", verifyToken, upload.none(), changePassword);
 
 // Course Routes
 app.get("/courses/:id", getSingleCourse);
-app.get("/courses", getAllCoursesAvailable);
 app.get("/courses/instructor/:instructor", getAllCoursesByAnInstructor);
 
 // Protected Course Routes
+app.get("/courses", verifyToken, getAllCoursesAvailable);
 app.post("/course", verifyToken, upload.single("image"), createCourse);
 app.put("/course/:id", verifyToken, updateCourse);
 app.put("/course/:id", verifyToken, deleteCourse);
