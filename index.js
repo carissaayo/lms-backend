@@ -27,6 +27,7 @@ import {
   createLecture,
   deleteAllLectureInACourse,
   deleteSingleLecture,
+  getAllLecturesInACourse,
   getSingleLecture,
   updateLecture,
 } from "./routes/lectures.js";
@@ -86,7 +87,7 @@ app.put("/lectures/:id", verifyToken, upload.single("video"), updateLecture);
 
 // Lecure Routes
 app.get("/course/lectures/:id", getSingleLecture);
-
+app.get("/course/:id", getAllLecturesInACourse);
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

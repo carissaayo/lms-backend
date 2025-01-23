@@ -12,7 +12,6 @@ export const createCourse = async (req, res) => {
         .json("Access Denied, you need to be logged in to create courses");
     }
 
-    const data = req.body;
     const instructor = user.id;
     const newData = {
       ...req.body,
@@ -25,7 +24,7 @@ export const createCourse = async (req, res) => {
     };
 
     const newCourse = new Course(newData);
-    const addCourse = user.courses.push(newCourse);
+    user.courses.push(newCourse);
 
     await newCourse.save();
     await user.save();
