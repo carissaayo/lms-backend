@@ -23,7 +23,13 @@ import {
   getSingleCourse,
   updateCourse,
 } from "./routes/course.js";
-import { createLecture } from "./routes/lectures.js";
+import {
+  createLecture,
+  deleteAllLectureInACourse,
+  deleteSingleLecture,
+  getSingleLecture,
+  updateLecture,
+} from "./routes/lectures.js";
 
 // middlewares
 import { verifyToken } from "./middlewares/verifyToken.js";
@@ -50,7 +56,7 @@ app.get("/user/:id", getSingleUser);
 // Protected User Routes
 app.get("/users", verifyToken, getAllUsers);
 app.put("/user/:id", verifyToken, updateUserProfile);
-app.delete("/user/:id", verifyToken, deleteUser);
+app.put("/user/:id", verifyToken, deleteUser);
 
 // Course Routes
 app.get("/courses/:id", getSingleCourse);
@@ -60,8 +66,8 @@ app.get("/courses/instructor/:instructor", getAllCoursesByAnInstructor);
 // Protected Course Routes
 app.post("/course", verifyToken, upload.single("image"), createCourse);
 app.put("/course/:id", verifyToken, updateCourse);
-app.delete("/course/:id", verifyToken, deleteCourse);
-app.delete(
+app.put("/course/:id", verifyToken, deleteCourse);
+app.put(
   "/courses/instructor/:instructor",
   verifyToken,
   deleteCoursesByAnInstructor
@@ -74,6 +80,12 @@ app.post(
   upload.single("video"),
   createLecture
 );
+app.put("/course/lectures/:id", verifyToken, deleteSingleLecture);
+app.put("/:id/lectures", verifyToken, deleteAllLectureInACourse);
+app.put("/lectures/:id", verifyToken, upload.single("video"), updateLecture);
+
+// Lecure Routes
+app.get("/course/lectures/:id", getSingleLecture);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
