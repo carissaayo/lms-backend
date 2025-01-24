@@ -27,6 +27,47 @@ export const createUser = async (req, res) => {
   }
 };
 
+// make user an admin
+export const makeUserAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // has the user been deleted
+    const deletedUser = await User.findOne({ _id: id, deleted: true });
+    if (deletedUser) {
+      return res.status(401).json({ message: "user has been deleted" });
+    }
+
+    const existingUser = await User.find({ _id: id, deleted: true });
+
+    if (!existingUser) {
+      return res.status(400).json("User not found");
+    }
+
+    const mainAdmin = await User.find({ email: process.env.ADMIN_EMAIL });
+    if (mainAdmin[0].id !== req.user.id) {
+      return res
+        .status(401)
+        .json("Access Denied, only the super can make an user an admin ");
+    }
+    if (mainAdmin[0].id === id) {
+      return res.status(401).json("Access Denied ");
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      { _id: id },
+      { isAdmin: true },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "user role updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.log("error updating user role", error);
+    res.status(500).json({ message: "Updating user role failed" });
+  }
+};
+
 // login user
 export const loginUser = async (req, res) => {
   try {

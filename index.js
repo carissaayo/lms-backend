@@ -13,6 +13,7 @@ import {
   loginUser,
   logoutUser,
   updateUserProfile,
+  makeUserAdmin,
 } from "./routes/users.js";
 import {
   createCourse,
@@ -61,6 +62,8 @@ app.post("/logout", logoutUser);
 app.get("/user/:id", getSingleUser);
 
 // Protected User Routes
+app.put("/user/:id/role", verifyToken, makeUserAdmin);
+
 app.get("/users", verifyToken, getAllUsers);
 app.put("/users/:id", verifyToken, updateUserProfile);
 app.put("/user/:id", verifyToken, deleteUser);
