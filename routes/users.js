@@ -164,8 +164,15 @@ export const getAllUsers = async (req, res) => {
     if (!req.user.isAdmin) {
       res.status(401).json({ message: "Acess Denied, you are not allowed" });
     }
-    const users = await User.find({ deleted: false });
 
+    const users = await User.aggregate([
+      {
+        $match: {
+          email: { $ne: process.env.ADMIN_EMAIL }, // Exclude the super admin email
+          deleted: false, // Exclude deleted users
+        },
+      },
+    ]);
     res.status(200).json({
       message: "All users fetched successfully",
       users,
