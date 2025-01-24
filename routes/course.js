@@ -43,9 +43,9 @@ export const createCourse = async (req, res) => {
 export const getSingleCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    const isItDeleted = await Course.find({ _id: id, deleted: true });
+    const isItDeleted = await Course.findOne({ _id: id, deleted: true });
 
-    if (isItDeleted.title) {
+    if (isItDeleted) {
       res.status(401).json({
         message: "course has been deleted",
         isItDeleted,
@@ -93,11 +93,11 @@ export const getAllCoursesByAnInstructor = async (req, res) => {
     const { instructor } = req.params;
 
     // Is the instructor deleted
-    const isTheInstructorDeleted = await User.find({
+    const isTheInstructorDeleted = await User.findOne({
       _id: instructor,
       deleted: true,
     });
-    if (isTheInstructorDeleted.name) {
+    if (isTheInstructorDeleted) {
       return res.status(401).json({
         message: "Instructor can't be found",
         isTheInstructorDeleted,
@@ -125,7 +125,7 @@ export const updateCourse = async (req, res) => {
     const { id } = req.params;
 
     //has the course been deleted
-    const deletedCourse = await Course.find({ _id: id, deleted: true });
+    const deletedCourse = await Course.findOne({ _id: id, deleted: true });
 
     if (deletedCourse) {
       return res.status(401).json({
@@ -133,7 +133,7 @@ export const updateCourse = async (req, res) => {
         course: deletedCourse,
       });
     }
-    const existingCourse = await Course.find({ _id: id, deleted: false });
+    const existingCourse = await Course.findOne({ _id: id, deleted: false });
 
     if (!existingCourse) {
       return res.status(400).json("Course not found");
@@ -166,22 +166,22 @@ export const deleteCourse = async (req, res) => {
     const { id } = req.params;
 
     //has the course been deleted
-    const deletedCourse = await Course.find({ _id: id, deleted: true });
+    const deletedCourse = await Course.findOne({ _id: id, deleted: true });
 
-    if (deletedCourse[0]?.title) {
+    if (deletedCourse) {
       return res.status(401).json({
         message: "course has already been deleted",
       });
     }
 
-    const existingCourse = await Course.find({ _id: id, deleted: false });
+    const existingCourse = await Course.findOne({ _id: id, deleted: false });
 
-    if (!existingCourse[0]) {
+    if (!existingCourse) {
       return res.status(400).json("course not found");
     }
     if (
       req.user.isAdmin === false &&
-      existingCourse[0]?.instructor.toString() !== req.user.id
+      existingCourse?.instructor.toString() !== req.user.id
     ) {
       return res
         .status(401)

@@ -2,6 +2,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
+import {
+  generateToken,
+  transporter,
+} from "../middlewares/emailVerification.js";
 
 // create user
 export const createUser = async (req, res) => {
@@ -17,10 +21,34 @@ export const createUser = async (req, res) => {
       password,
       Number(process.env.SALTROUNDS)
     );
+
+    // Generate verification token
+    const token = generateToken(email);
+    const PORT = process.env.PORT || 8080;
+    // Send verification email
+    const verificationLink = `http://localhost:${PORT}/verify-email?token=${token}`;
+    transporter.sendMail(
+      {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Verify your email",
+        html: `<h2>Hello ${name},</h2><p>Click the link below to verify your email:</p><a href="${verificationLink}">Verify Email</a>`,
+      },
+      (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+          return res.status(500).json({ message: "Failed to send email" });
+        }
+        console.log("Email sent:", info.response);
+
+        return res.json({
+          message:
+            "A mail has been sent to your email address for verification",
+        });
+      }
+    );
     const newUser = new User({ email, name, password: hashedPassword });
     await newUser.save();
-
-    res.json({ message: "User created successfully" });
   } catch (error) {
     console.log("error registering user", error);
     res.status(500).json({ message: "Registration failed" });
@@ -65,6 +93,41 @@ export const makeUserAdmin = async (req, res) => {
   } catch (error) {
     console.log("error updating user role", error);
     res.status(500).json({ message: "Updating user role failed" });
+  }
+};
+
+// make user an admin
+export const verifyUser = async (req, res) => {
+  try {
+    const { token } = req.query;
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    // has the user been deleted
+    const deletedUser = await User.findOne({
+      email: decoded.email,
+      deleted: true,
+    });
+    if (deletedUser) {
+      return res.status(401).json({ message: "user has been deleted" });
+    }
+
+    const existingUser = await User.findOne({
+      email: decoded.email,
+      deleted: false,
+    });
+
+    if (!existingUser) {
+      return res.status(401).json({ message: "user does not exist" });
+    }
+
+    existingUser.isVerified = true;
+    await existingUser.save();
+
+    return res.send("<h1>Email verified successfully!</h1>");
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(400).send("<h1>Invalid or expired token</h1>");
   }
 };
 
@@ -141,7 +204,7 @@ export const getSingleUser = async (req, res) => {
       return res.status(401).json({ message: "user has been deleted" });
     }
 
-    const existingUser = await User.find({ _id: id, deleted: false });
+    const existingUser = await User.findOne({ _id: id, deleted: false });
 
     if (!existingUser) {
       return res.status(400).json("User not found");
@@ -193,7 +256,7 @@ export const updateUserProfile = async (req, res) => {
       return res.status(401).json({ message: "user has been deleted" });
     }
 
-    const existingUser = await User.find({ _id: id, deleted: true });
+    const existingUser = await User.findOne({ _id: id, deleted: true });
 
     if (!existingUser) {
       return res.status(400).json("User not found");

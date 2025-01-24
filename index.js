@@ -14,6 +14,7 @@ import {
   logoutUser,
   updateUserProfile,
   makeUserAdmin,
+  verifyUser,
 } from "./routes/users.js";
 import {
   createCourse,
@@ -58,6 +59,7 @@ mongoose
 // User Routes
 app.post("/register", createUser);
 app.post("/login", loginUser);
+app.get("/verify-email", verifyUser);
 app.post("/logout", logoutUser);
 app.get("/user/:id", getSingleUser);
 
