@@ -12,8 +12,11 @@ export const createUser = async (req, res) => {
       return res.status(400).json("Email already in use");
     }
     // Bcrypt
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      Number(process.env.SALTROUNDS)
+    );
     const newUser = new User({ email, name, password: hashedPassword });
     await newUser.save();
 

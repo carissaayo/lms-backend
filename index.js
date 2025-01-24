@@ -35,7 +35,12 @@ import {
 // middlewares
 import { verifyToken } from "./middlewares/verifyToken.js";
 import upload from "./middlewares/fileUpload.js";
-import { changePassword, resetPassword } from "./routes/password.js";
+import {
+  changePassword,
+  createNewPassword,
+  requestResetPasswordLink,
+  resetPassword,
+} from "./routes/password.js";
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -60,7 +65,9 @@ app.get("/users", verifyToken, getAllUsers);
 app.put("/users/:id", verifyToken, updateUserProfile);
 app.put("/user/:id", verifyToken, deleteUser);
 app.put("/change-password", verifyToken, upload.none(), changePassword);
-app.put("/request-reset", verifyToken, upload.none(), resetPassword);
+app.put("/request-reset", verifyToken, upload.none(), requestResetPasswordLink);
+app.get("/reset-password", upload.none(), createNewPassword);
+app.post("/reset-password", upload.none(), resetPassword);
 
 // Course Routes
 app.get("/courses/:id", getSingleCourse);
