@@ -16,7 +16,7 @@ import {
   makeUserAdmin,
   verifyUser,
   assignRole,
-} from "./routes/users.js";
+} from "./controllers/users.js";
 import {
   createCourse,
   deleteCourse,
@@ -25,7 +25,7 @@ import {
   getAllCoursesByAnInstructor,
   getSingleCourse,
   updateCourse,
-} from "./routes/course.js";
+} from "./controllers/course.js";
 import {
   createLecture,
   deleteAllLectureInACourse,
@@ -33,7 +33,7 @@ import {
   getAllLecturesInACourse,
   getSingleLecture,
   updateLecture,
-} from "./routes/lectures.js";
+} from "./controllers/lectures.js";
 
 // middlewares
 import { verifyToken } from "./middlewares/verifyToken.js";
@@ -43,7 +43,7 @@ import {
   createNewPassword,
   requestResetPasswordLink,
   resetPassword,
-} from "./routes/password.js";
+} from "./controllers/password.js";
 
 const app = express();
 const port = process.env.PORT || 8080;
