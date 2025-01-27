@@ -33,6 +33,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    role: {
+      type: String,
+      enum: ["instructor", "student", "moderator"],
+      default: "student",
+    },
   },
   { timestamps: true }
 );

@@ -59,11 +59,6 @@ export const createUser = async (req, res) => {
 export const makeUserAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    // has the user been deleted
-    const deletedUser = await User.findOne({ _id: id, deleted: true });
-    if (deletedUser) {
-      return res.status(401).json({ message: "user has been deleted" });
-    }
 
     const existingUser = await User.find({ _id: id, deleted: false });
 
@@ -81,14 +76,47 @@ export const makeUserAdmin = async (req, res) => {
       return res.status(401).json("You are the super admin ");
     }
     const updatedUser = await User.findByIdAndUpdate(
-      { _id: id },
-      { isAdmin: true },
+      { _id: id, deleted: false },
+      { isAdmin: true, role: "moderator" },
       { new: true }
     );
 
     res.status(200).json({
       message: "user role updated successfully",
       user: updatedUser,
+    });
+  } catch (error) {
+    console.log("error updating user role", error);
+    res.status(500).json({ message: "Updating user role failed" });
+  }
+};
+
+// assign role
+export const assignRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const role = req.body.role;
+
+    if (!role) {
+      return res.status(401).json({ message: "no valid role provided" });
+    }
+    const isAdmin = await User.findOne({ _id: req.user.id, isAdmin: true });
+
+    if (!isAdmin) {
+      return res
+        .status(401)
+        .json("Access Denied, only an admin can change roles");
+    }
+
+    const assignUserRole = await User.findByIdAndUpdate(
+      { _id: id, deleted: false },
+      { role },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "user role updated successfully",
+      user: assignUserRole,
     });
   } catch (error) {
     console.log("error updating user role", error);
