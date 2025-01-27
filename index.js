@@ -18,12 +18,15 @@ import {
   assignRole,
 } from "./controllers/users.js";
 import {
+  approveCourseByAdmin,
   createCourse,
   deleteCourse,
   deleteCoursesByAnInstructor,
+  filterCourses,
   getAllCoursesAvailable,
   getAllCoursesByAnInstructor,
   getSingleCourse,
+  publishCourseByInstructor,
   updateCourse,
 } from "./controllers/course.js";
 import {
@@ -79,9 +82,10 @@ app.post("/reset-password", upload.none(), resetPassword);
 // Course Routes
 app.get("/courses/:id", getSingleCourse);
 app.get("/courses/instructor/:instructor", getAllCoursesByAnInstructor);
+app.get("/courses", filterCourses);
 
 // Protected Course Routes
-app.get("/courses", verifyToken, getAllCoursesAvailable);
+app.get("/get-courses-by-admin", verifyToken, getAllCoursesAvailable);
 app.post("/course", verifyToken, upload.single("image"), createCourse);
 app.put("/course/:id", verifyToken, updateCourse);
 app.put("/course/:id", verifyToken, deleteCourse);
@@ -90,6 +94,8 @@ app.put(
   verifyToken,
   deleteCoursesByAnInstructor
 );
+app.put("/approve-course/:id", verifyToken, approveCourseByAdmin);
+app.put("/publish-course/:id", verifyToken, publishCourseByInstructor);
 
 // Protected Lectures Routes
 app.post(

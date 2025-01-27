@@ -16,7 +16,11 @@ const courseSchema = new mongoose.Schema(
     studentsEnrolled: { type: Number, default: 0 },
     category: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
-
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
+    isPublished: { type: Boolean, default: false },
     price: { type: String, required: true },
     image: {
       url: {
