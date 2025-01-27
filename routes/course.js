@@ -7,18 +7,24 @@ export const createCourse = async (req, res) => {
     const user = await User.findOne({ _id: req.user.id, deleted: false });
 
     if (!user) {
-      res
+      return res
         .status(401)
         .json("Access Denied, you need to be logged in to create courses");
+    }
+
+    if (!user.isVerified) {
+      return res
+        .status(401)
+        .json("Access Denied, you need to be verify your email first");
     }
 
     const instructor = user.id;
     const newData = {
       ...req.body,
       image: {
-        url: req.file.path,
-        imageName: req.file.filename,
-        caption: req.body.caption && req.body.caption,
+        url: req.file?.path,
+        imageName: req.file?.filename,
+        caption: req.body?.caption && req.body.caption,
       },
       instructor,
     };
@@ -29,7 +35,7 @@ export const createCourse = async (req, res) => {
     await newCourse.save();
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "course has been created successfully",
       course: newCourse,
     });
@@ -46,7 +52,7 @@ export const getSingleCourse = async (req, res) => {
     const isItDeleted = await Course.findOne({ _id: id, deleted: true });
 
     if (isItDeleted) {
-      res.status(401).json({
+      return res.status(401).json({
         message: "course has been deleted",
         isItDeleted,
       });
@@ -54,11 +60,11 @@ export const getSingleCourse = async (req, res) => {
 
     const getAcourse = await Course.findById({ _id: id });
     if (!getAcourse) {
-      res.status(401).json({
+      return res.status(401).json({
         message: "such course isn't available",
       });
     }
-    res.status(200).json({
+    return res.status(200).json({
       message: "course has been fecthed successfully",
       course: getAcourse,
     });
@@ -99,8 +105,7 @@ export const getAllCoursesByAnInstructor = async (req, res) => {
     });
     if (isTheInstructorDeleted) {
       return res.status(401).json({
-        message: "Instructor can't be found",
-        isTheInstructorDeleted,
+        message: "Instructor has been deleted",
       });
     }
 
@@ -109,7 +114,7 @@ export const getAllCoursesByAnInstructor = async (req, res) => {
       deleted: false,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "All courses has been fetched successfully",
       courses,
     });
@@ -130,7 +135,6 @@ export const updateCourse = async (req, res) => {
     if (deletedCourse) {
       return res.status(401).json({
         message: "course has been deleted",
-        course: deletedCourse,
       });
     }
     const existingCourse = await Course.findOne({ _id: id, deleted: false });
@@ -149,8 +153,8 @@ export const updateCourse = async (req, res) => {
     const updatedCourse = await Course.findByIdAndUpdate(id, newData, {
       new: true,
     });
-    console.log(updatedCourse);
-    res.status(200).json({
+
+    return res.status(200).json({
       message: "course updated successfully",
       course: updatedCourse,
     });
@@ -189,7 +193,7 @@ export const deleteCourse = async (req, res) => {
     }
 
     // deleted a course
-    const deleteCourse = await Course.findByIdAndUpdate(
+    await Course.findByIdAndUpdate(
       { _id: id },
       { deleted: true },
       { new: true }
@@ -215,9 +219,8 @@ export const deleteCoursesByAnInstructor = async (req, res) => {
     }
 
     const courses = await Course.deleteMany({ instructor: instructor });
-    console.log(courses);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "courses  has been deleted successfully",
     });
   } catch (error) {

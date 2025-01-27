@@ -65,20 +65,20 @@ export const makeUserAdmin = async (req, res) => {
       return res.status(401).json({ message: "user has been deleted" });
     }
 
-    const existingUser = await User.find({ _id: id, deleted: true });
+    const existingUser = await User.find({ _id: id, deleted: false });
 
     if (!existingUser) {
       return res.status(400).json("User not found");
     }
 
-    const mainAdmin = await User.find({ email: process.env.ADMIN_EMAIL });
-    if (mainAdmin[0].id !== req.user.id) {
+    const mainAdmin = await User.findOne({ email: process.env.ADMIN_EMAIL });
+    if (mainAdmin.id !== req.user.id) {
       return res
         .status(401)
         .json("Access Denied, only the super can make an user an admin ");
     }
-    if (mainAdmin[0].id === id) {
-      return res.status(401).json("Access Denied ");
+    if (mainAdmin.id === id) {
+      return res.status(401).json("You are the super admin ");
     }
     const updatedUser = await User.findByIdAndUpdate(
       { _id: id },
@@ -96,7 +96,7 @@ export const makeUserAdmin = async (req, res) => {
   }
 };
 
-// make user an admin
+// verify user
 export const verifyUser = async (req, res) => {
   try {
     const { token } = req.query;
@@ -231,8 +231,8 @@ export const getAllUsers = async (req, res) => {
     const users = await User.aggregate([
       {
         $match: {
-          email: { $ne: process.env.ADMIN_EMAIL }, // Exclude the super admin email
-          deleted: false, // Exclude deleted users
+          email: { $ne: process.env.ADMIN_EMAIL },
+          deleted: false,
         },
       },
     ]);
@@ -256,7 +256,7 @@ export const updateUserProfile = async (req, res) => {
       return res.status(401).json({ message: "user has been deleted" });
     }
 
-    const existingUser = await User.findOne({ _id: id, deleted: true });
+    const existingUser = await User.findOne({ _id: id, deleted: false });
 
     if (!existingUser) {
       return res.status(400).json("User not found");
@@ -268,7 +268,7 @@ export const updateUserProfile = async (req, res) => {
         .json("Access Denied, you can only update your account");
     }
 
-    const { email, name } = req.body;
+    const { email } = req.body;
     if (req.body.email) {
       // Check if the new email has been used already
       const checkEmailAvailability = await User.findOne({ email });
@@ -281,7 +281,7 @@ export const updateUserProfile = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(id, newData, {
       new: true,
     });
-    console.log(updatedUser);
+
     res.status(200).json({
       message: "user details updated successfully",
       user: updatedUser,
