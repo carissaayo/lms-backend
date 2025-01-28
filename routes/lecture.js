@@ -10,10 +10,7 @@ import {
 
 const router = express.Router();
 
-const lectureCpUpload = upload.fields([
-  { name: "video", maxCount: 1 },
-  { name: "notes", maxCount: 10 },
-]);
+const lectureCpUpload = upload.array("notes", 10);
 // Protected Lectures Routes
 router.post("/:courseId/lecture", verifyToken, lectureCpUpload, createLecture);
 router.put("/:id/delete-lecture", verifyToken, deleteSingleLecture);

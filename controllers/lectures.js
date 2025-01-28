@@ -25,6 +25,7 @@ export const createLecture = async (req, res) => {
           "Access Denied, you don't have the permission to create a lecture"
         );
     }
+    console.log(req.files);
 
     // is the course available and not deleted
     const validCourse = await Course.findOne({
@@ -35,9 +36,8 @@ export const createLecture = async (req, res) => {
       return res.status(401).json("Course can't be found");
     }
 
-    const videoStuff = req.files["video"][0];
-    const pdfStuff = req.files["notes"];
-    if (!videoStuff) {
+    const pdfStuff = req.files;
+    if (!req.body.video) {
       return res
         .status(401)
         .json({ message: "A video is required as part of the lecture" });
@@ -45,17 +45,9 @@ export const createLecture = async (req, res) => {
 
     const newData = {
       ...req.body,
-      video: {
-        url: videoStuff?.path,
-        caption: req.body.caption && req.body.caption,
-        format: videoStuff?.mimetype,
-        sizeInKB: convertFileToKB(videoStuff?.size),
-        sizeInMB: convertFileToMB(videoStuff?.size),
-        originalName: videoStuff?.originalname,
-      },
+      video: req.body.video,
       notes: pdfStuff?.map((pdf) => ({
         url: pdf.path,
-
         format: pdf.mimetype,
         sizeInKB: convertFileToKB(pdf.size),
         sizeInMB: convertFileToMB(pdf.size),
@@ -64,7 +56,7 @@ export const createLecture = async (req, res) => {
       instructor: req.user.id,
       course: courseId,
     };
-    console.log(newData);
+
     const newLecture = new Lecture(newData);
     validCourse.lectures.push(newLecture);
 

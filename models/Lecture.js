@@ -7,15 +7,9 @@ const lectureSchema = new mongoose.Schema(
       required: true,
     },
     video: {
-      url: {
-        type: String,
-        required: true,
-      },
-      caption: { type: String },
-      format: { type: String, required: true },
-      sizeInKB: { type: String, required: true },
-      sizeInMB: { type: String, required: true },
-      originalName: { type: String, required: true },
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Video",
     },
     notes: [
       {
