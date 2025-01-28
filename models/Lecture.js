@@ -9,9 +9,27 @@ const lectureSchema = new mongoose.Schema(
     video: {
       url: {
         type: String,
+        required: true,
       },
-      caption: String,
+      caption: { type: String },
+      format: { type: String, required: true },
+      sizeInKB: { type: String, required: true },
+      sizeInMB: { type: String, required: true },
+      originalName: { type: String, required: true },
     },
+    notes: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        caption: { type: String },
+        format: { type: String, required: true },
+        sizeInKB: { type: String, required: true },
+        sizeInMB: { type: String, required: true },
+        originalName: { type: String, required: true },
+      },
+    ],
     duration: {
       type: Number,
       required: true,
