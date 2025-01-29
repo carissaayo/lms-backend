@@ -132,11 +132,20 @@ export const uploadDocs = async (req, res) => {
           `pdf-images/${file.originalname}${counter}.png`,
           image
         );
+        // Optionally, upload each image to Cloudinary
+        const uploadedImage = await cloudinary.uploader.upload(
+          `pdf-images/${file.originalname}${counter}.png`,
+          {
+            folder: `pdf-images-${file.originalname}`,
+            use_filename: true,
+          }
+        );
+        results.push(uploadedImage);
         counter++;
-
-        console.log(image);
       }
     }
+    console.log(results);
+    // uploadDocs.map((file) => fs.unlinkSync(file.path));
     return res.status(200).json({
       message: "Files uploaded successfully",
       // files: uploadedFiles,
