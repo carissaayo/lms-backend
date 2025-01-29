@@ -1,6 +1,10 @@
 import express from "express";
 import upload from "../middlewares/fileUpload.js";
-import { getVideo, uploadVideo } from "../controllers/fileUpload.js";
+import {
+  getVideo,
+  uploadDocs,
+  uploadVideo,
+} from "../controllers/fileUpload.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 const router = express.Router();
@@ -8,5 +12,7 @@ const router = express.Router();
 router.post("/video", verifyToken, upload.single("video"), uploadVideo);
 
 router.get("/video/:id", verifyToken, getVideo);
+
+router.post("/docs", verifyToken, upload.array("notes", 10), uploadDocs);
 
 export default router;
