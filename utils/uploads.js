@@ -1,16 +1,14 @@
 import { promises as fs } from "node:fs";
 
 export const deleteFileFromDir = (file) => {
-  if (result) {
-    fs.unlink("uploads/" + file.filename, (err) => {
-      if (err) {
-        console.error(`Error removing file: ${err}`);
-        return;
-      }
+  fs.unlink("uploads/" + file.filename, (err) => {
+    if (err) {
+      console.error(`Error removing file: ${err}`);
+      return;
+    }
 
-      console.log(`File ${file.filename} has been successfully removed.`);
-    });
-  }
+    console.log(`File ${file.filename} has been successfully removed.`);
+  });
 };
 
 export const deletePdfImagesFromDir = (filename) => {
