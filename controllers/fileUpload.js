@@ -1,15 +1,19 @@
-import { promises as fs } from "node:fs";
 import { pdf } from "pdf-to-img";
+import imageToPDF from "image-to-pdf";
+import fs from "fs";
+import axios from "axios";
+import os from "os";
+import path from "path";
 
 import User from "../models/User.js";
+import Video from "../models/Video.js";
+import PDF from "../models/PDF.js";
+
 import cloudinary from "../utils/cloudinary.js";
 import {
   convertFileToKB,
   convertFileToMB,
 } from "../utils/fileSizeConverter.js";
-import Video from "../models/Video.js";
-import PDF from "../models/PDF.js";
-import { request } from "node:http";
 import { deleteFileFromDir, deletePdfImagesFromDir } from "../utils/uploads.js";
 
 export const uploadVideo = async (req, res) => {
@@ -140,11 +144,6 @@ export const uploadDocs = async (req, res) => {
     if (results.length > 0) {
       deleteFileFromDir(file);
     }
-    const fetchImagesFolder = await cloudinary.api.resources({
-      type: "upload",
-      prefix: `pdf-images-${file.originalname}`, // Filter by folder
-    });
-
     const data = {
       title: file.originalname,
       sizeInKB: convertFileToKB(file.size),
@@ -170,11 +169,59 @@ export const getFiles = async (req, res) => {
     const fetchImagesFolder = await cloudinary.api.resources({
       type: "upload",
       prefix: folderName, // Filter by folder
+      width: 500,
+      height: 700,
+      crop: "limit",
+      format: "jpg",
     });
+    if (fetchImagesFolder.resources.length === 0) {
+      return res.status(404).json({ message: "no folder found in storage" });
+    }
+    const imagesUrls = fetchImagesFolder.resources.map(
+      (file) => file.secure_url
+    );
 
-    console.log(fetchImagesFolder);
-    res.status(200).json(fetchImagesFolder);
+    // Step 2: Download the images locally
+    const imagePaths = [];
+    for (const [index, url] of imagesUrls.entries()) {
+      const imageResponse = await axios.get(url, {
+        responseType: "arraybuffer",
+      });
+      const imagePath = `./docs/image_${index}.jpg`; // Save each image locally
+      fs.writeFileSync(imagePath, imageResponse.data);
+      imagePaths.push(imagePath);
+    }
+
+    const fileName = folderName.slice(11);
+    // Step 3: Convert images to PDF
+    const pdfFilePath = path.join(os.tmpdir(), `${folderName}`);
+    // const pdfFilePath = `./docs/${fileName}`;
+    imageToPDF(imagePaths, "A4").pipe(fs.createWriteStream(pdfFilePath));
+
+    // Step 4: Send the PDF as a response
+    res.setHeader("Content-Type", "application/pdf");
+    const check = res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${fileName}`
+    );
+
+    // Delete the images
+    imagePaths.forEach((path) => fs.unlinkSync(path));
+    // fs.unlinkSync(pdfFilePath);
+    // if (check) {
+    //   fs.unlink(pdfFilePath, (err) => {
+    //     if (err) {
+    //       console.error(`Error removing file: ${err}`);
+    //       return;
+    //     }
+
+    //     console.log(`File ${pdfFilePath} has been successfully removed.`);
+    //   });
+    // }
+
+    res.status(200).json({ message: "done" });
   } catch (error) {
-    console.log(error);
+    console.log("error fetching file", error);
+    res.status(500).json({ message: "File fetching failed" });
   }
 };

@@ -21,3 +21,14 @@ export const deletePdfImagesFromDir = (filename) => {
     console.log(`File ${filename} has been successfully removed.`);
   });
 };
+
+export const deletePdfFromDir = (filename) => {
+  fs.unlink(filename, (err) => {
+    if (err) {
+      console.error(`Error removing file: ${err}`);
+      return;
+    }
+
+    console.log(`File ${filename} has been successfully removed.`);
+  });
+};
