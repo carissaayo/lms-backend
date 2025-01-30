@@ -1,9 +1,3 @@
-// import fs from "fs";
-import { fromPath } from "pdf2pic";
-import { pathToFileURL } from "url";
-import { PDFDocument } from "pdf-lib";
-import { load } from "@pspdfkit/nodejs";
-import path from "path";
 import { promises as fs } from "node:fs";
 import { pdf } from "pdf-to-img";
 
@@ -15,6 +9,8 @@ import {
 } from "../utils/fileSizeConverter.js";
 import Video from "../models/Video.js";
 import PDF from "../models/PDF.js";
+import { request } from "node:http";
+import { deleteFileFromDir, deletePdfImagesFromDir } from "../utils/uploads.js";
 
 export const uploadVideo = async (req, res) => {
   try {
@@ -42,14 +38,7 @@ export const uploadVideo = async (req, res) => {
       public_id: req.file?.title,
     });
     if (result) {
-      fs.unlink("uploads/" + req.file.filename, (err) => {
-        if (err) {
-          console.error(`Error removing file: ${err}`);
-          return;
-        }
-
-        console.log(`File ${req.file.filename} has been successfully removed.`);
-      });
+      deleteFileFromDir;
     }
 
     const newData = {
@@ -116,42 +105,76 @@ export const uploadDocs = async (req, res) => {
         .status(401)
         .json("Access Denied, you don't have the permission to upload");
     }
-    if (!req.files || req.files.length === 0) {
+
+    if (!req.file) {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
-    const uploadedDocs = req.files;
     const results = [];
+    const file = req.file;
+    console.log(file);
 
-    for (const file of uploadedDocs) {
-      const pdfPath = file.path; // Path to the uploaded PDF
-      const document = await pdf(pdfPath, { scale: 3 });
-      let counter = 1;
-      for await (const image of document) {
-        await fs.writeFile(
-          `pdf-images/${file.originalname}${counter}.png`,
-          image
-        );
-        // Optionally, upload each image to Cloudinary
-        const uploadedImage = await cloudinary.uploader.upload(
-          `pdf-images/${file.originalname}${counter}.png`,
-          {
-            folder: `pdf-images-${file.originalname}`,
-            use_filename: true,
-          }
-        );
-        results.push(uploadedImage);
-        counter++;
+    const pdfPath = req.file.path; // Path to the uploaded PDF
+
+    const document = await pdf(pdfPath, { scale: 3 });
+    let counter = 1;
+    for await (const image of document) {
+      await fs.writeFile(
+        `pdf-images/${file.originalname}${counter}.png`,
+        image
+      );
+      // Optionally, upload each image to Cloudinary
+      const uploadedImage = await cloudinary.uploader.upload(
+        `pdf-images/${file.originalname}${counter}.png`,
+        {
+          folder: `pdf-images-${file.originalname}`,
+          use_filename: true,
+        }
+      );
+      if (uploadedImage) {
+        deletePdfImagesFromDir(`pdf-images/${file.originalname}${counter}.png`);
       }
+      results.push(uploadedImage);
+      counter++;
     }
-    console.log(results);
-    // uploadDocs.map((file) => fs.unlinkSync(file.path));
+    if (results.length > 0) {
+      deleteFileFromDir(file);
+    }
+    const fetchImagesFolder = await cloudinary.api.resources({
+      type: "upload",
+      prefix: `pdf-images-${file.originalname}`, // Filter by folder
+    });
+
+    const data = {
+      title: file.originalname,
+      sizeInKB: convertFileToKB(file.size),
+      sizeInMB: convertFileToMB(file.size),
+      instructor: req.user.id,
+      fileFolder: `pdf-images-${file.originalname}`,
+    };
+    const createdDoc = await PDF.create(data);
+
     return res.status(200).json({
-      message: "Files uploaded successfully",
-      // files: uploadedFiles,
+      message: "File uploaded successfully",
+      file: createdDoc,
     });
   } catch (error) {
-    console.log("error uploading video", error);
-    res.status(500).json({ message: "Video uploading  failed" });
+    console.log("error uploading file", error);
+    res.status(500).json({ message: "File uploading  failed" });
+  }
+};
+
+export const getFiles = async (req, res) => {
+  try {
+    const { folderName } = req.params;
+    const fetchImagesFolder = await cloudinary.api.resources({
+      type: "upload",
+      prefix: folderName, // Filter by folder
+    });
+
+    console.log(fetchImagesFolder);
+    res.status(200).json(fetchImagesFolder);
+  } catch (error) {
+    console.log(error);
   }
 };

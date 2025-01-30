@@ -1,6 +1,7 @@
 import express from "express";
 import upload from "../middlewares/fileUpload.js";
 import {
+  getFiles,
   getVideo,
   uploadDocs,
   uploadVideo,
@@ -12,7 +13,8 @@ const router = express.Router();
 router.post("/video", verifyToken, upload.single("video"), uploadVideo);
 
 router.get("/video/:id", verifyToken, getVideo);
+router.get("/docs/:folderName", getFiles);
 
-router.post("/docs", verifyToken, upload.array("notes", 10), uploadDocs);
+router.post("/docs", verifyToken, upload.single("notes"), uploadDocs);
 
 export default router;
