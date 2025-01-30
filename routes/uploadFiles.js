@@ -15,6 +15,6 @@ router.post("/video", verifyToken, upload.single("video"), uploadVideo);
 router.get("/video/:id", verifyToken, getVideo);
 router.get("/docs/:folderName", getFiles);
 
-router.post("/docs", verifyToken, upload.single("notes"), uploadDocs);
+router.post("/docs", verifyToken, upload.single("note"), uploadDocs);
 
 export default router;

@@ -10,17 +10,11 @@ import {
 
 const router = express.Router();
 
-const lectureCpUpload = upload.array("notes", 10);
 // Protected Lectures Routes
-router.post("/:courseId/lecture", verifyToken, lectureCpUpload, createLecture);
+router.post("/:courseId/lecture", verifyToken, createLecture);
 router.put("/:id/delete-lecture", verifyToken, deleteSingleLecture);
 
-router.put(
-  "/:id/update-lecture",
-  verifyToken,
-  upload.single("video"),
-  updateLecture
-);
+router.put("/:id/update-lecture", verifyToken, updateLecture);
 
 // Lecure Routes
 router.get("/course/lectures/:id", getSingleLecture);

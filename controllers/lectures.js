@@ -2,11 +2,6 @@ import Course from "../models/Course.js";
 import Lecture from "../models/Lecture.js";
 import User from "../models/User.js";
 
-import {
-  convertFileToKB,
-  convertFileToMB,
-} from "../utils/fileSizeConverter.js";
-
 // create a lecture
 export const createLecture = async (req, res) => {
   try {
@@ -25,7 +20,6 @@ export const createLecture = async (req, res) => {
           "Access Denied, you don't have the permission to create a lecture"
         );
     }
-    console.log(req.files);
 
     // is the course available and not deleted
     const validCourse = await Course.findOne({
@@ -35,26 +29,15 @@ export const createLecture = async (req, res) => {
     if (!validCourse) {
       return res.status(401).json("Course can't be found");
     }
-
-    const pdfStuff = req.files;
-    if (!req.body.video) {
-      return res
-        .status(401)
-        .json({ message: "A video is required as part of the lecture" });
-    }
+    console.log(req.body);
 
     const newData = {
-      ...req.body,
       video: req.body.video,
-      notes: pdfStuff?.map((pdf) => ({
-        url: pdf.path,
-        format: pdf.mimetype,
-        sizeInKB: convertFileToKB(pdf.size),
-        sizeInMB: convertFileToMB(pdf.size),
-        originalName: pdf.originalname,
-      })),
+      notes: req.body.note,
       instructor: req.user.id,
       course: courseId,
+      title: req.body.title,
+      duration: req.body.duration,
     };
 
     const newLecture = new Lecture(newData);
@@ -160,11 +143,10 @@ export const updateLecture = async (req, res) => {
     }
 
     const newData = {
-      ...req.body,
-      video: {
-        url: req?.file?.path && req.file.path,
-        caption: req.body?.caption && req.body.caption,
-      },
+      video: req.body.video && req.body.video,
+      notes: req.body.note && req.body.note,
+      title: req.body.title && req.body.title,
+      duration: req.body.duration && req.body.duration,
     };
 
     const updateLecture = await Lecture.findByIdAndUpdate(

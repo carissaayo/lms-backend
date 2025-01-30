@@ -11,19 +11,10 @@ const lectureSchema = new mongoose.Schema(
       required: true,
       ref: "Video",
     },
-    notes: [
-      {
-        url: {
-          type: String,
-          required: true,
-        },
-        caption: { type: String },
-        format: { type: String, required: true },
-        sizeInKB: { type: String, required: true },
-        sizeInMB: { type: String, required: true },
-        originalName: { type: String, required: true },
-      },
-    ],
+    notes: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PDF",
+    },
     duration: {
       type: Number,
       required: true,

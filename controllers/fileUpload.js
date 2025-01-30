@@ -200,24 +200,10 @@ export const getFiles = async (req, res) => {
 
     // Step 4: Send the PDF as a response
     res.setHeader("Content-Type", "application/pdf");
-    const check = res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=${fileName}`
-    );
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
 
     // Delete the images
     imagePaths.forEach((path) => fs.unlinkSync(path));
-    // fs.unlinkSync(pdfFilePath);
-    // if (check) {
-    //   fs.unlink(pdfFilePath, (err) => {
-    //     if (err) {
-    //       console.error(`Error removing file: ${err}`);
-    //       return;
-    //     }
-
-    //     console.log(`File ${pdfFilePath} has been successfully removed.`);
-    //   });
-    // }
 
     res.status(200).json({ message: "done" });
   } catch (error) {
