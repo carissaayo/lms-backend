@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import upload from "../middlewares/fileUpload.js";
+
 import {
   createLecture,
   deleteSingleLecture,

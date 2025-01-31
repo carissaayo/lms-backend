@@ -9,7 +9,7 @@ const questionSchema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
-  options: { type: [String], required: true }, // Array of options for multiple-choice questions
+  options: [{ type: String }], // Array of options for multiple-choice questions
   correctAnswer: { type: mongoose.Schema.Types.Mixed, required: true }, // Can be a value, index, or text
   type: {
     type: String,
@@ -18,6 +18,4 @@ const questionSchema = new mongoose.Schema({
   },
 });
 
-const Question = mongoose.model("Question", questionSchema);
-
-export default Question;
+export default questionSchema;

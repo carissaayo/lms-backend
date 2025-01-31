@@ -39,6 +39,10 @@ const courseSchema = new mongoose.Schema(
         ref: "Lecture",
       },
     ],
+    quizz: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Quizz",
+    },
     deleted: { type: Boolean, default: false },
   },
   { timestamps: true }
