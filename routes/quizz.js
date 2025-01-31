@@ -1,17 +1,25 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
-import { createQuizz } from "../controllers/quizzes.js";
+import {
+  createQuizz,
+  deleteQuizzesByAnInstructor,
+  deleteSingleQuizz,
+  getAllQuizzes,
+  getQuizzesByAnInstructor,
+  getSingleQuizz,
+  updateQuizz,
+} from "../controllers/quizzes.js";
 
 const router = express.Router();
 
-// Protected Lectures Routes
+// Protected Quizz Routes
 router.post("/:courseId", verifyToken, createQuizz);
-// router.put("/:id/delete-lecture", verifyToken, deleteSingleLecture);
-
-// router.put("/:id/update-lecture", verifyToken, updateLecture);
-
-// Lecure Routes
-// router.get("/course/lectures/:id", getSingleLecture);
+router.get("/all-quizzes", verifyToken, getAllQuizzes);
+router.get("/:instructorId/quizzes", verifyToken, getQuizzesByAnInstructor);
+router.put("/:instructorId/quizzes", verifyToken, deleteQuizzesByAnInstructor);
+router.get("/:quizzId", verifyToken, getSingleQuizz);
+router.put("/:quizzId/delete-quizz", verifyToken, deleteSingleQuizz);
+router.put("/:quizzId/update-quizz", verifyToken, updateQuizz);
 
 export default router;

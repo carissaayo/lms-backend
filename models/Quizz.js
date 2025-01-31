@@ -22,10 +22,11 @@ const quizzSchema = new mongoose.Schema(
       required: true,
     },
     questions: [questionSchema],
+    deleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-const Quizz = mongoose.model("QuizzSchema", quizzSchema);
+const Quizz = mongoose.model("Quizz", quizzSchema);
 
 export default Quizz;
