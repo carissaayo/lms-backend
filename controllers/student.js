@@ -105,8 +105,6 @@ export const takeQuizz = async (req, res) => {
     }
     const getQuizz = await Quizz.findOne({ _id: id, deleted: false });
 
-    console.log(getQuizz);
-
     if (!getQuizz) {
       return res.status(401).json({
         message: "quizz can't be found",
@@ -118,7 +116,11 @@ export const takeQuizz = async (req, res) => {
         message: "quizz not found in this course",
       });
     }
-
+    if (getQuizz.interestedStudents.includes(user._id)) {
+      return res.status(401).json({
+        message: "you can't take a quizz more than once",
+      });
+    }
     getQuizz.interestedStudents.push(user);
     user.quizz.push(getQuizz);
     await getQuizz.save();
@@ -127,7 +129,79 @@ export const takeQuizz = async (req, res) => {
     return res.status(200).json({
       message: "course has been fecthed successfully",
       quizz: getQuizz,
-      user: user,
+    });
+  } catch (error) {
+    console.log("error taking course", error);
+    res.status(500).json({ message: "Quizz taking failed" });
+  }
+};
+
+export const submitQuizz = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findOne({
+      _id: req.user.id,
+      deleted: false,
+      role: "student",
+    });
+
+    if (!user || user.role !== "student" || !user.isVerified) {
+      return res.status(401).json({
+        message: "only verified students can take quizz",
+      });
+    }
+
+    const getQuizz = await Quizz.findOne({ _id: id, deleted: false });
+
+    if (!getQuizz) {
+      return res.status(404).json({
+        message: "quizz can't be found",
+      });
+    }
+
+    if (
+      user.quizz.filter((q) => q._id.toString() === getQuizz._id.toString())
+    ) {
+      return res.status(401).json({
+        message: "you have already attempted the quizz",
+      });
+    }
+
+    const { answers } = req.body;
+
+    let totalScore = 0;
+
+    answers.forEach((answer) => {
+      const question = getQuizz.questions.find((q) =>
+        q._id.equals(answer.questionId)
+      );
+      if (!question) {
+        return res.status(404).json({
+          message: "question could not be found",
+        });
+      }
+
+      if (question) {
+        if (question.correctAnswer === answer.chosenAnswer) {
+          totalScore += question.points;
+        }
+      }
+    });
+
+    user.quizz = user.quizz.map((q) => {
+      if (q._id.toString() === getQuizz._id.toString()) {
+        return { ...q, totalScore };
+      }
+      return q;
+    });
+    // console.log(user);
+    await user.save();
+
+    return res.status(200).json({
+      message: "Quizz has been submitted successfully",
+      score: totalScore,
+      user,
     });
   } catch (error) {
     console.log("error taking course", error);

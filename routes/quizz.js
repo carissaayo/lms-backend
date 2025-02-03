@@ -10,7 +10,7 @@ import {
   getSingleQuizz,
   updateQuizz,
 } from "../controllers/quizzes.js";
-import { takeQuizz } from "../controllers/student.js";
+import { submitQuizz, takeQuizz } from "../controllers/student.js";
 
 const router = express.Router();
 
@@ -25,4 +25,5 @@ router.get("/all-quizzes", verifyToken, getAllQuizzes);
 router.get("/:instructorId/quizzes", verifyToken, getQuizzesByAnInstructor);
 router.get("/:quizzId", verifyToken, getSingleQuizz);
 router.put("/participate-in-quizz/:id", verifyToken, takeQuizz);
+router.put("/submit-quizz/:id", verifyToken, submitQuizz);
 export default router;

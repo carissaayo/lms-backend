@@ -41,8 +41,8 @@ const userSchema = new mongoose.Schema(
     enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     quizz: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Quizz",
+        quizzId: { type: mongoose.Schema.Types.ObjectId, ref: "Quizz" },
+        totalScore: { type: Number, default: 0 },
       },
     ],
     assigments: [
