@@ -162,6 +162,7 @@ export const submitQuizz = async (req, res) => {
 
     if (
       user.quizz.filter((q) => q._id.toString() === getQuizz._id.toString())
+        ?.totalScore > 0
     ) {
       return res.status(401).json({
         message: "you have already attempted the quizz",
@@ -195,7 +196,6 @@ export const submitQuizz = async (req, res) => {
       }
       return q;
     });
-    // console.log(user);
     await user.save();
 
     return res.status(200).json({
