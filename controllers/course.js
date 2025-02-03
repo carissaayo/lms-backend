@@ -300,6 +300,12 @@ export const deleteCourse = async (req, res) => {
       { new: true }
     );
 
+    // remove the course frm enrolled students
+    await User.updateMany(
+      { enrolledCourses: id },
+      { $pull: { enrolledCourses: id } }
+    );
+
     res.status(200).json({
       message: "course account has been deleted successfully",
     });

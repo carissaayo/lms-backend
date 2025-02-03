@@ -13,7 +13,13 @@ const courseSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    studentsEnrolled: { type: Number, default: 0 },
+    studentsEnrolled: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
     category: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     isApproved: {

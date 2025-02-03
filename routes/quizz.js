@@ -10,16 +10,19 @@ import {
   getSingleQuizz,
   updateQuizz,
 } from "../controllers/quizzes.js";
+import { takeQuizz } from "../controllers/student.js";
 
 const router = express.Router();
 
-// Protected Quizz Routes
+// Protected Quizz Routes for Instructors
 router.post("/:courseId", verifyToken, createQuizz);
-router.get("/all-quizzes", verifyToken, getAllQuizzes);
-router.get("/:instructorId/quizzes", verifyToken, getQuizzesByAnInstructor);
 router.put("/:instructorId/quizzes", verifyToken, deleteQuizzesByAnInstructor);
-router.get("/:quizzId", verifyToken, getSingleQuizz);
 router.put("/:quizzId/delete-quizz", verifyToken, deleteSingleQuizz);
 router.put("/:quizzId/update-quizz", verifyToken, updateQuizz);
 
+// Protected Quizz Routes for Students
+router.get("/all-quizzes", verifyToken, getAllQuizzes);
+router.get("/:instructorId/quizzes", verifyToken, getQuizzesByAnInstructor);
+router.get("/:quizzId", verifyToken, getSingleQuizz);
+router.put("/participate-in-quizz/:id", verifyToken, takeQuizz);
 export default router;

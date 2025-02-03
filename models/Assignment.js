@@ -17,7 +17,7 @@ const assignmentSchema = new mongoose.Schema(
     },
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Lecture",
+      ref: "User",
       required: true,
     },
     dueDate: { type: Number, required: true },
@@ -26,6 +26,13 @@ const assignmentSchema = new mongoose.Schema(
       ref: "PDF",
       required: true,
     },
+    interestedStudents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
     deleted: { type: Boolean, default: false },
   },
   { timestamps: true }

@@ -95,12 +95,17 @@ export const makeUserAdmin = async (req, res) => {
 export const assignRole = async (req, res) => {
   try {
     const { id } = req.params;
+
     const role = req.body.role;
 
-    const isUserVerified = await User.findOne({ _id: id, isVerified: true });
+    const isUserVerified = await User.findOne({
+      _id: id,
+      isVerified: true,
+      deleted: false,
+    });
 
     if (!isUserVerified) {
-      return res.status(401).send({ message: "user isn't verified" });
+      return res.status(401).send({ message: "user isn't verified or found" });
     }
 
     if (!role) {
@@ -235,6 +240,37 @@ export const logoutUser = async (req, res) => {
 export const getSingleUser = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const existingUser = await User.findOne({ _id: id, deleted: false });
+
+    if (!existingUser) {
+      return res.status(400).json("User not found");
+    }
+
+    if (!req.user?.isAdmin && existingUser.role !== "instructor") {
+      return res.status(400).json("No Instuctor found");
+    }
+    const { name, _id, courses, role } = existingUser._doc;
+    const newUserDetails = { name, _id, courses, role };
+    res.status(200).json({
+      message: "User details fetched successfully",
+      newUserDetails,
+    });
+  } catch (error) {
+    console.log("error fetching user", error);
+    res.status(500).json({ message: "Fetching user failed" });
+  }
+};
+
+// get a user
+export const getSingleUserByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.user?.isAdmin) {
+      return res
+        .status(401)
+        .json({ message: "Access Denied, you don't have the permission" });
+    }
     // has the user been deleted
     const deletedUser = await User.findOne({ _id: id, deleted: true });
     if (deletedUser) {
@@ -246,8 +282,8 @@ export const getSingleUser = async (req, res) => {
     if (!existingUser) {
       return res.status(400).json("User not found");
     }
-    const { password, ...userDetails } = existingUser._doc;
 
+    const { password, ...userDetails } = existingUser._doc;
     res.status(200).json({
       message: "User details fetched successfully",
       userDetails,

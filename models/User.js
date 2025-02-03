@@ -38,6 +38,19 @@ const userSchema = new mongoose.Schema(
       enum: ["instructor", "student", "moderator"],
       default: "student",
     },
+    enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
+    quizz: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Quizz",
+      },
+    ],
+    assigments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Assignment",
+      },
+    ],
   },
   { timestamps: true }
 );

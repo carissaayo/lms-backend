@@ -18,11 +18,18 @@ const quizzSchema = new mongoose.Schema(
     },
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
+      ref: "User",
       required: true,
     },
     questions: [questionSchema],
     deleted: { type: Boolean, default: false },
+    interestedStudents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );
