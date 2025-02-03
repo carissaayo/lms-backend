@@ -2,13 +2,9 @@ import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 import {
-  createLecture,
-  deleteSingleLecture,
-  getSingleLecture,
-  updateLecture,
-} from "../controllers/lectures.js";
-import {
   createAssignment,
+  deleteAssignmentByAnInstructor,
+  deleteSingleAssignment,
   getAllAssignments,
   getAssignmentsByAnInstructor,
   getSingleAssignment,
@@ -19,12 +15,17 @@ const router = express.Router();
 
 // Protected Assignments Routes
 router.post("/:lectureId/create-assignment", verifyToken, createAssignment);
-// router.put("/:id/delete-lecture", verifyToken, deleteSingleLecture);
 router.get("/:assignmentId", verifyToken, getSingleAssignment);
 router.get(
   "/instructor/:instructorId",
   verifyToken,
   getAssignmentsByAnInstructor
+);
+router.put("/:id/delete-assignment", verifyToken, deleteSingleAssignment);
+router.put(
+  "/:instructorId/delete-assignments",
+  verifyToken,
+  deleteAssignmentByAnInstructor
 );
 router.get("/", verifyToken, getAllAssignments);
 router.put("/:assignmentId/update-assignment", verifyToken, updateAssignment);

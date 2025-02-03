@@ -172,13 +172,15 @@ export const getAllAssignments = async (req, res) => {
   }
 };
 
-export const deleteSingleQuizz = async (req, res) => {
+export const deleteSingleAssignment = async (req, res) => {
   try {
+    const { id } = req.params;
+
     // Valid User
     const user = await User.findOne({
       _id: req.user.id,
       deleted: false,
-      role: "instructor" || "moderator",
+      role: { $in: ["moderator", "instructor"] },
     });
 
     if (!user) {
@@ -187,30 +189,27 @@ export const deleteSingleQuizz = async (req, res) => {
         .json("Access Denied, you don't have the permission");
     }
 
-    const { id } = req.params;
-
     // is the course available and not deleted
-    const validQuizz = await Quizz.findOne({
+    const validAssignment = await Assignment.findOne({
       _id: id,
-      instructor: req.user.id,
-      deleted: false,
+      deleted: true,
     });
 
-    if (!validQuizz) {
-      return res.status(401).json("quizz does not exist");
+    if (!validAssignment) {
+      return res.status(401).json("Assignment does not exist");
     }
 
-    await Quizz.findByIdAndUpdate(id, { deleted: true }, { new: true });
+    await Assignment.findByIdAndUpdate(id, { deleted: false }, { new: true });
     return res.status(200).json({
-      message: "quizz deleted successfully",
+      message: "Assignment deleted successfully",
     });
   } catch (error) {
-    console.log("error deleting quizz", error);
-    res.status(500).json({ message: "Quizz deletion failed" });
+    console.log("error deleting assignment", error);
+    res.status(500).json({ message: "Assignment deletion failed" });
   }
 };
 
-export const deleteQuizzesByAnInstructor = async (req, res) => {
+export const deleteAssignmentByAnInstructor = async (req, res) => {
   try {
     const { instructorId } = req.params;
 
@@ -221,24 +220,24 @@ export const deleteQuizzesByAnInstructor = async (req, res) => {
     }
 
     // is the course available and not deleted
-    const deleteQuizzes = await Quizz.updateMany(
+    const deleteAssignments = await Assignment.updateMany(
       {
         instructor: instructorId,
-        deleted: false,
+        deleted: true,
       },
-      { $set: { deleted: true } },
+      { $set: { deleted: false } },
       { new: true }
     );
 
-    if (deleteQuizzes.modifiedCount === 0) {
-      return res.status(404).json("quizzes do not exist");
+    if (deleteAssignments.modifiedCount === 0) {
+      return res.status(404).json("Assignments do not exist");
     }
 
     return res.status(200).json({
-      message: "quizzes deleted successfully",
+      message: "Assignments deleted successfully",
     });
   } catch (error) {
-    console.log("error deleting quizzes", error);
-    res.status(500).json({ message: "Quizzes deletion failed" });
+    console.log("error deleting Assignments", error);
+    res.status(500).json({ message: "Assignments deletion failed" });
   }
 };
