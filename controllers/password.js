@@ -37,10 +37,12 @@ export const changePassword = async (req, res) => {
 
     // if the passwords match, hash the new password and replace the old password in DB with it
     if (newPassword === confirmNewPassword) {
-      const hashedPassword = bcrypt.hash(
+      const hashedPassword = await bcrypt.hash(
         newPassword,
         Number(process.env.SALTROUNDS)
       );
+      console.log(hashedPassword);
+
       await User.findByIdAndUpdate(
         { _id: req.user.id },
         { password: hashedPassword },
@@ -71,7 +73,7 @@ export const requestResetPasswordLink = async (req, res) => {
     const port = process.env.PORT || 8080;
 
     // Send password reset email
-    const resetLink = `http://localhost:${port}/reset-password?token=${token}`;
+    const resetLink = `http://localhost:${port}/api/reset-password?token=${token}`;
 
     transporter.sendMail(
       {
@@ -101,7 +103,6 @@ export const createNewPassword = async (req, res) => {
     const { token } = req.query;
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    console.log(req.user);
 
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
@@ -110,7 +111,7 @@ export const createNewPassword = async (req, res) => {
 
     return res.send(`
       <h1>Reset Password</h1>
-      <form action="/reset-password" method="POST">
+      <form action="/api/reset-password" method="POST">
         <input type="hidden" name="token" value="${token}" />
         <label for="password">New Password:</label>
         <input type="password" name="password" required />
@@ -140,7 +141,7 @@ export const resetPassword = async (req, res) => {
       Number(process.env.SALTROUNDS)
     );
     await User.findByIdAndUpdate(
-      { _id: updateUser[0].id },
+      { _id: updateUser.id },
       { password: hashedPassword },
       { new: true }
     );

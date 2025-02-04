@@ -25,6 +25,6 @@ router.put("/user/:id/make-admin", verifyToken, makeUserAdmin);
 router.put("/:id/role", verifyToken, assignRole);
 router.get("/", verifyToken, getAllUsers);
 router.put("/:id", verifyToken, updateUserProfile);
-router.put("/:id", verifyToken, deleteUser);
+router.put("/:id/delete-user", verifyToken, deleteUser);
 
 export default router;

@@ -28,6 +28,8 @@ export const createCourse = async (req, res) => {
     };
 
     const newCourse = new Course(newData);
+    console.log(newCourse);
+
     user.courses.push(newCourse);
 
     await newCourse.save();
@@ -158,7 +160,10 @@ export const getAllCoursesAvailable = async (req, res) => {
         .status(401)
         .json({ message: "Access Denied, you are not allowed" });
     }
+
     const courses = await Course.find({ deleted: false });
+    console.log(courses);
+
     return res.status(200).json({
       message: "All courses has been fetched successfully",
       courses,
@@ -180,16 +185,17 @@ export const filterCourses = async (req, res) => {
     if (instructor) {
       query.instructor = instructor;
     }
+
     const getCourses = await Course.find(query);
     const count = await Course.countDocuments(query);
     return res.status(200).json({
-      message: "course has been fecthed successfully",
+      message: "courses has been fecthed successfully",
       course: getCourses,
       count,
     });
   } catch (error) {
-    console.log("error fetching course", error);
-    res.status(500).json({ message: "Course fecthing  failed" });
+    console.log("error fetching courses", error);
+    res.status(500).json({ message: "Courses fetching  failed" });
   }
 };
 
@@ -234,17 +240,17 @@ export const updateCourse = async (req, res) => {
     const deletedCourse = await Course.findOne({ _id: id, deleted: true });
 
     if (deletedCourse) {
-      return res.status(401).json({
+      return res.status(403).json({
         message: "course has been deleted",
       });
     }
     const existingCourse = await Course.findOne({ _id: id, deleted: false });
 
     if (!existingCourse) {
-      return res.status(400).json("Course not found");
+      return res.status(404).json("Course not found");
     }
 
-    if (existingCourse?.instructor !== req.user.id) {
+    if (existingCourse?.instructor.toString() !== req.user.id) {
       return res
         .status(401)
         .json("Access Denied, you can only update your course");

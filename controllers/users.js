@@ -98,26 +98,23 @@ export const assignRole = async (req, res) => {
 
     const role = req.body.role;
 
-    const isUserVerified = await User.findOne({
+    if (!req.user.isAdmin) {
+      return res
+        .status(401)
+        .json("Access Denied, only an admin can change roles");
+    }
+    const user = await User.findOne({
       _id: id,
       isVerified: true,
       deleted: false,
     });
 
-    if (!isUserVerified) {
-      return res.status(401).send({ message: "user isn't verified or found" });
+    if (!user) {
+      return res.status(404).send({ message: "user isn't verified or found" });
     }
 
     if (!role) {
       return res.status(401).json({ message: "no valid role provided" });
-    }
-
-    const isAdmin = await User.findOne({ _id: req.user.id, isAdmin: true });
-
-    if (isAdmin) {
-      return res
-        .status(401)
-        .json("Access Denied, only an admin can change roles");
     }
 
     const assignUserRole = await User.findByIdAndUpdate(

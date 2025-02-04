@@ -33,8 +33,7 @@ export const createLecture = async (req, res) => {
 
     const video = await uploadVideo(req, res, req.files["video"][0]);
     const docs = await uploadDocs(req, res, req.files["notes"][0]);
-    console.log(video);
-    console.log(docs);
+
     const vid = video.uploadVideo;
     const doc = docs.file;
 
@@ -148,10 +147,21 @@ export const updateLecture = async (req, res) => {
     if (deletedLecture) {
       return res.status(401).json("lecture has been deleted");
     }
+    let video = {};
+    let docs = {};
 
+    if (req.files["video"][0]) {
+      video = await uploadVideo(req, res, req.files["video"][0]);
+    }
+    if (req.files["notes"][0]) {
+      docs = await uploadDocs(req, res, req.files["notes"][0]);
+    }
+
+    const vid = video?.uploadVideo;
+    const doc = docs?.file;
     const newData = {
-      video: req.body.video && req.body.video,
-      notes: req.body.note && req.body.note,
+      video: vid && vid._id,
+      notes: doc && doc._id,
       title: req.body.title && req.body.title,
       duration: req.body.duration && req.body.duration,
     };

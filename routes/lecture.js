@@ -23,7 +23,15 @@ router.post(
 );
 router.put("/:id/delete-lecture", verifyToken, deleteSingleLecture);
 
-router.put("/:id/update-lecture", verifyToken, updateLecture);
+router.put(
+  "/:id/update-lecture",
+  verifyToken,
+  upload.fields([
+    { name: "video", maxCount: 1 },
+    { name: "notes", maxCount: 1 },
+  ]),
+  updateLecture
+);
 
 // Lecure Routes
 router.get("/course/lectures/:id", getSingleLecture);
