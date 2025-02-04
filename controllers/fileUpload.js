@@ -16,13 +16,13 @@ import {
 } from "../utils/fileSizeConverter.js";
 import { deleteFileFromDir, deletePdfImagesFromDir } from "../utils/uploads.js";
 
-export const uploadVideo = async (req, res) => {
+export const uploadVideo = async (req, res, file) => {
   try {
     // Valid User
     const user = await User.findOne({
       _id: req.user.id,
       deleted: false,
-      role: "instructor",
+      isVerified: true,
     });
 
     if (!user) {
@@ -30,38 +30,38 @@ export const uploadVideo = async (req, res) => {
         .status(401)
         .json("Access Denied, you don't have the permission to upload a video");
     }
-    const videoStuff = req.file;
 
-    if (videoStuff.mimetype.substring(0, 6) !== "video/") {
+    if (file.mimetype.substring(0, 6) !== "video/") {
       return res.status(401).json({ message: "only videos are supported" });
     }
 
-    const result = await cloudinary.uploader.upload(req.file?.path, {
+    const result = await cloudinary.uploader.upload(file?.path, {
       resource_type: "video", // Specify video resource type
       folder: "videos", // Optional folder name in Cloudinary
-      public_id: req.file?.title,
+      public_id: file?.title,
     });
     if (result) {
-      deleteFileFromDir;
+      deleteFileFromDir(file);
     }
 
     const newData = {
       title: req.body?.title,
       url: result.secure_url,
       publicId: result.public_id,
-      format: videoStuff?.mimetype,
-      sizeInKB: convertFileToKB(videoStuff?.size),
-      sizeInMB: convertFileToMB(videoStuff?.size),
-      originalName: videoStuff?.originalname,
-      instructor: req.user.id,
+      format: file?.mimetype,
+      sizeInKB: convertFileToKB(file?.size),
+      sizeInMB: convertFileToMB(file?.size),
+      originalName: file?.originalname,
+      uploader: req.user.id,
+      role: req.user.role,
     };
     const uploadVideo = new Video(newData);
     await uploadVideo.save();
 
-    return res.status(200).json({
+    return {
       message: "video uploaded successfully",
       uploadVideo,
-    });
+    };
   } catch (error) {
     console.log("error uploading video", error);
     res.status(500).json({ message: "Video uploading  failed" });
@@ -95,13 +95,13 @@ export const getVideo = async (req, res) => {
   }
 };
 
-export const uploadDocs = async (req, res) => {
+export const uploadDocs = async (req, res, file) => {
   try {
     // Valid User
     const user = await User.findOne({
       _id: req.user.id,
       deleted: false,
-      role: "instructor",
+      isVerified: true,
     });
 
     if (!user) {
@@ -110,54 +110,67 @@ export const uploadDocs = async (req, res) => {
         .json("Access Denied, you don't have the permission to upload");
     }
 
-    if (!req.file) {
+    if (!file) {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
     const results = [];
-    const file = req.file;
-    console.log(file);
 
-    const pdfPath = req.file.path; // Path to the uploaded PDF
+    const pdfPath = file.path; // Path to the uploaded
 
+    // Ensure the folder exists
+    await fs.promises.mkdir(`${req.user.id}-pdf-images`, { recursive: true });
     const document = await pdf(pdfPath, { scale: 3 });
     let counter = 1;
     for await (const image of document) {
-      await fs.writeFile(
-        `pdf-images/${file.originalname}${counter}.png`,
+      await fs.promises.writeFile(
+        `${req.user.id}-pdf-images/${file.originalname}${counter}.png`,
         image
       );
       // Optionally, upload each image to Cloudinary
       const uploadedImage = await cloudinary.uploader.upload(
-        `pdf-images/${file.originalname}${counter}.png`,
+        `${req.user.id}-pdf-images/${file.originalname}${counter}.png`,
         {
-          folder: `pdf-images-${file.originalname}`,
+          folder: `${req.user.id}-pdf-images-${file.originalname}`,
           use_filename: true,
         }
       );
       if (uploadedImage) {
-        deletePdfImagesFromDir(`pdf-images/${file.originalname}${counter}.png`);
+        deletePdfImagesFromDir(
+          `${req.user.id}-pdf-images/${file.originalname}${counter}.png`
+        );
       }
       results.push(uploadedImage);
       counter++;
     }
-    if (results.length > 0) {
-      deleteFileFromDir(file);
-    }
+
     const data = {
       title: file.originalname,
       sizeInKB: convertFileToKB(file.size),
       sizeInMB: convertFileToMB(file.size),
-      instructor: req.user.id,
-      fileFolder: `pdf-images-${file.originalname}`,
+      uploader: req.user.id,
+      fileFolder: `${req.user.id}-pdf-images-${file.originalname}`,
+      role: req.user.role,
     };
     const createdDoc = await PDF.create(data);
 
-    return res.status(200).json({
+    if (createdDoc) {
+      // await fs.promises.unlink(pdfPath);
+
+      // Delete the folder containing extracted images
+      await fs.promises.rm(`${req.user.id}-pdf-images`, {
+        recursive: true,
+        force: true,
+      });
+    }
+    deleteFileFromDir(file);
+
+    return {
       message: "File uploaded successfully",
       file: createdDoc,
-    });
+    };
   } catch (error) {
+    // await fs.promises.unlink(pdfPath);
     console.log("error uploading file", error);
     res.status(500).json({ message: "File uploading  failed" });
   }

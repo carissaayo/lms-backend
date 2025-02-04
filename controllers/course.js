@@ -325,7 +325,7 @@ export const deleteCoursesByAnInstructor = async (req, res) => {
         .json("Access Denied, you can only delete your courses");
     }
 
-    const courses = await Course.deleteMany({ instructor: instructor });
+    await Course.deleteMany({ instructor: instructor });
 
     return res.status(200).json({
       message: "courses  has been deleted successfully",

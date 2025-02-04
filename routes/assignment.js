@@ -10,11 +10,25 @@ import {
   getSingleAssignment,
   updateAssignment,
 } from "../controllers/assignment.js";
+import { submitAssignment } from "../controllers/student.js";
+import upload from "../middlewares/fileUpload.js";
 
 const router = express.Router();
 
 // Protected Assignments Routes
-router.post("/:lectureId/create-assignment", verifyToken, createAssignment);
+upload.single("question"),
+  router.post(
+    "/:lectureId/create-assignment",
+    verifyToken,
+    upload.single("question"),
+    createAssignment
+  );
+router.post(
+  "/:assignmentId/submit-assignment",
+  verifyToken,
+  upload.single("answer"),
+  submitAssignment
+);
 router.get("/:assignmentId", verifyToken, getSingleAssignment);
 router.get(
   "/instructor/:instructorId",

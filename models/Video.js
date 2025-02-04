@@ -9,11 +9,12 @@ const videoSchema = new mongoose.Schema(
     sizeInKB: { type: String, required: true },
     sizeInMB: { type: String, required: true },
     originalName: { type: String, required: true },
-    instructor: {
+    uploader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    role: { type: String, required: true },
   },
   { timestamps: true }
 );

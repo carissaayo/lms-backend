@@ -45,10 +45,11 @@ const userSchema = new mongoose.Schema(
         totalScore: { type: Number, default: 0 },
       },
     ],
-    assigments: [
+    assignments: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Assignment",
+        score: { type: Number, default: 0 },
       },
     ],
   },

@@ -1,6 +1,8 @@
+import Assignment from "../models/Assignment.js";
 import Course from "../models/Course.js";
 import Quizz from "../models/Quizz.js";
 import User from "../models/User.js";
+import { uploadDocs } from "./fileUpload.js";
 
 // create Single course
 export const registerForCourse = async (req, res) => {
@@ -201,10 +203,62 @@ export const submitQuizz = async (req, res) => {
     return res.status(200).json({
       message: "Quizz has been submitted successfully",
       score: totalScore,
-      user,
     });
   } catch (error) {
     console.log("error taking course", error);
     res.status(500).json({ message: "Quizz taking failed" });
+  }
+};
+
+export const submitAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+
+    const user = await User.findOne({
+      _id: req.user.id,
+      deleted: false,
+      role: "student",
+    });
+
+    if (!user || user.role !== "student" || !user.isVerified) {
+      return res.status(401).json({
+        message: "only verified students can take assignments",
+      });
+    }
+
+    // is the assignment available and not deleted
+    const getAssignment = await Assignment.findOne({
+      _id: assignmentId,
+      deleted: false,
+    });
+    if (!getAssignment) {
+      return res.status(404).json("Assignment not found");
+    }
+
+    if (user.assignments.includes(assignmentId)) {
+      return res.status(401).json("You have already submitted this assignment");
+    }
+
+    const upload = await uploadDocs(req, res, req.file);
+
+    console.log(upload);
+    const uploadData = upload.file;
+    const student = {
+      studentId: uploadData.uploader,
+      submittedFileId: uploadData._id,
+      fileFolder: uploadData.fileFolder,
+    };
+    getAssignment.interestedStudents.push(student);
+    user.assignments.push(assignmentId);
+
+    await getAssignment.save();
+    await user.save();
+
+    return res.status(200).json({
+      message: "Assignment submitted successfully",
+    });
+  } catch (error) {
+    console.log("error submitting assignment", error);
+    res.status(500).json({ message: "Assignment  failed" });
   }
 };

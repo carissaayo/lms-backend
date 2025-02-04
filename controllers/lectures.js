@@ -1,6 +1,7 @@
 import Course from "../models/Course.js";
 import Lecture from "../models/Lecture.js";
 import User from "../models/User.js";
+import { uploadDocs, uploadVideo } from "./fileUpload.js";
 
 // create a lecture
 export const createLecture = async (req, res) => {
@@ -29,11 +30,17 @@ export const createLecture = async (req, res) => {
     if (!validCourse) {
       return res.status(401).json("Course can't be found");
     }
-    console.log(req.body);
+
+    const video = await uploadVideo(req, res, req.files["video"][0]);
+    const docs = await uploadDocs(req, res, req.files["notes"][0]);
+    console.log(video);
+    console.log(docs);
+    const vid = video.uploadVideo;
+    const doc = docs.file;
 
     const newData = {
-      video: req.body.video,
-      notes: req.body.note,
+      video: vid._id,
+      notes: doc._id,
       instructor: req.user.id,
       course: courseId,
       title: req.body.title,
@@ -47,7 +54,7 @@ export const createLecture = async (req, res) => {
     await validCourse.save();
     return res.status(200).json({
       message: "lecture has been created successfully",
-      course: newLecture,
+      lecture: newLecture,
     });
   } catch (error) {
     console.log("error creating lecture", error);

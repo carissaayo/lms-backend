@@ -28,9 +28,20 @@ const assignmentSchema = new mongoose.Schema(
     },
     interestedStudents: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+        studentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        submittedFileId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "PDF",
+          required: true,
+        },
+        fileFolder: {
+          type: String,
+          required: true,
+        },
       },
     ],
     deleted: { type: Boolean, default: false },

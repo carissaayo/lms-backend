@@ -1,6 +1,7 @@
 import Assignment from "../models/Assignment.js";
-import Quizz from "../models/Quizz.js";
+
 import User from "../models/User.js";
+import { uploadDocs } from "./fileUpload.js";
 
 export const createAssignment = async (req, res) => {
   try {
@@ -35,16 +36,21 @@ export const createAssignment = async (req, res) => {
       file: req.body.file,
     };
 
-    const newAssignment = new Assignment(newData);
-    await newAssignment.save();
+    const upload = await uploadDocs(req, res);
+
+    // console.log(upload);
+
+    // const newAssignment = new Assignment(newData);
+    // await newAssignment.save();
 
     return res.status(200).json({
       message: "Assignment has been created successfully",
-      assignment: newAssignment,
+      // assignment: newAssignment,
+      upload,
     });
   } catch (error) {
     console.log("error creating assignment", error);
-    res.status(500).json({ message: "Assignmrnt creation  failed" });
+    res.status(500).json({ message: "Assignment creation  failed" });
   }
 };
 
