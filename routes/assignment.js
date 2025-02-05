@@ -16,13 +16,12 @@ import upload from "../middlewares/fileUpload.js";
 const router = express.Router();
 
 // Protected Assignments Routes
-upload.single("question"),
-  router.post(
-    "/:lectureId/create-assignment",
-    verifyToken,
-    upload.single("question"),
-    createAssignment
-  );
+router.post(
+  "/:lectureId/create-assignment",
+  verifyToken,
+  upload.single("question"),
+  createAssignment
+);
 router.post(
   "/:assignmentId/submit-assignment",
   verifyToken,

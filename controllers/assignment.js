@@ -26,27 +26,24 @@ export const createAssignment = async (req, res) => {
       return res.status(401).json({ message: "No data was provided" });
     }
 
+    const upload = await uploadDocs(req, res, req.file);
+
+    const uploadFile = upload.file;
     const newData = {
-      instructor: req.user.id,
+      instructor: uploadFile.uploader,
       lecture: lectureId,
-      description: req.body.description,
       title: req.body.title,
-      questions: req.body.questions,
+      description: req.body.description,
       dueDate: req.body.dueDate,
-      file: req.body.file,
+      file: uploadFile._id,
     };
 
-    const upload = await uploadDocs(req, res);
-
-    // console.log(upload);
-
-    // const newAssignment = new Assignment(newData);
-    // await newAssignment.save();
+    const newAssignment = new Assignment(newData);
+    await newAssignment.save();
 
     return res.status(200).json({
       message: "Assignment has been created successfully",
-      // assignment: newAssignment,
-      upload,
+      assignment: newAssignment,
     });
   } catch (error) {
     console.log("error creating assignment", error);
@@ -198,14 +195,14 @@ export const deleteSingleAssignment = async (req, res) => {
     // is the course available and not deleted
     const validAssignment = await Assignment.findOne({
       _id: id,
-      deleted: true,
+      deleted: false,
     });
 
     if (!validAssignment) {
-      return res.status(401).json("Assignment does not exist");
+      return res.status(404).json("Assignment does not exist");
     }
 
-    await Assignment.findByIdAndUpdate(id, { deleted: false }, { new: true });
+    await Assignment.findByIdAndUpdate(id, { deleted: true }, { new: true });
     return res.status(200).json({
       message: "Assignment deleted successfully",
     });
@@ -229,9 +226,9 @@ export const deleteAssignmentByAnInstructor = async (req, res) => {
     const deleteAssignments = await Assignment.updateMany(
       {
         instructor: instructorId,
-        deleted: true,
+        deleted: false,
       },
-      { $set: { deleted: false } },
+      { $set: { deleted: true } },
       { new: true }
     );
 
