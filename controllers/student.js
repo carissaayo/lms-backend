@@ -99,6 +99,12 @@ export const takeQuizz = async (req, res) => {
       });
     }
 
+    if (!user.courses.includes(courseId)) {
+      return res.status(404).json({
+        message: "You didn't register for the course",
+      });
+    }
+
     const getCourse = await Course.findById({ _id: courseId });
     if (!getCourse) {
       return res.status(404).json({

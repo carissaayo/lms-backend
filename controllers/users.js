@@ -26,7 +26,7 @@ export const createUser = async (req, res) => {
     const token = generateToken(email);
     const PORT = process.env.PORT || 8080;
     // Send verification email
-    const verificationLink = `http://localhost:${PORT}/verify-email?token=${token}`;
+    const verificationLink = `http://localhost:${PORT}/api/verify-email?token=${token}`;
     transporter.sendMail(
       {
         from: process.env.EMAIL_USER,

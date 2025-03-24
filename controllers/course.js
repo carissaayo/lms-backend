@@ -10,6 +10,8 @@ export const createCourse = async (req, res) => {
       role: "instructor",
     });
 
+    console.log(req.user);
+
     if (!user) {
       return res
         .status(401)
