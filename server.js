@@ -16,7 +16,12 @@ import assignmentRouter from "./routes/assignment.js";
 const app = express();
 const port = process.env.PORT || 8080;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());
