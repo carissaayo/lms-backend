@@ -51,9 +51,9 @@ export const registerForCourse = async (req, res) => {
 // get Student course, assignments and quizzes
 export const getStudentDetails = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { userId } = req.params;
     const student = await User.findOne({
-      _id: id,
+      _id: userId,
       deleted: false,
       role: "student",
     })
