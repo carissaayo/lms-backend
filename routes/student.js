@@ -4,7 +4,6 @@ import { verifyToken } from "../middlewares/verifyToken.js";
 import {
   createUser,
   deleteUser,
-  getSingleUser,
   getAllUsers,
   loginUser,
   updateUserProfile,
