@@ -12,6 +12,7 @@ import {
   assignRole,
   getSingleUserByAdmin,
 } from "../controllers/users.js";
+import { getStudentDetails } from "../controllers/student.js";
 
 const router = express.Router();
 
