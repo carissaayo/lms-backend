@@ -68,8 +68,6 @@ export const getStudentDetails = async (req, res) => {
       });
     }
 
-    res.json({ courses: student.enrolledCourses });
-
     return res.status(200).json({
       message: "student details has been fecthed successfully",
       student,
