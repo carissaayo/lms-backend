@@ -52,6 +52,11 @@ export const registerForCourse = async (req, res) => {
 export const getStudentDetails = async (req, res) => {
   try {
     const { userId } = req.params;
+    if (req.user.id !== userId) {
+      return res.status(403).json({
+        message: "You are not allowed",
+      });
+    }
     const student = await User.findOne({
       _id: userId,
       deleted: false,
