@@ -1,5 +1,6 @@
 import Course from "../models/Course.js";
 import User from "../models/User.js";
+import cloudinary from "../utils/cloudinary.js";
 
 // create Single course
 export const createCourse = async (req, res) => {
@@ -10,22 +11,29 @@ export const createCourse = async (req, res) => {
       role: "instructor",
     });
 
-    console.log(req.user);
-
     if (!user) {
       return res
         .status(401)
         .json("You don't have the permissions to create a course");
     }
+    let uploadedImage = null;
+    if (req.file) {
+      uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+        folder: "courses", // optional folder
+      });
+    }
 
     const instructor = user.id;
+
     const newData = {
       ...req.body,
-      image: {
-        url: req.file?.path,
-        imageName: req.file?.filename,
-        caption: req.body?.caption && req.body.caption,
-      },
+      image: uploadedImage
+        ? {
+            url: uploadedImage.secure_url,
+            imageName: uploadedImage.public_id,
+            caption: req.body?.caption || "",
+          }
+        : null,
       instructor,
     };
 
