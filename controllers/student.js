@@ -48,6 +48,38 @@ export const registerForCourse = async (req, res) => {
   }
 };
 
+// get Student course, assignments and quizzes
+export const getStudentDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await User.findOne({
+      _id: id,
+      deleted: false,
+      role: "student",
+    })
+      .populate("enrolledCourses")
+      .populate("assignments")
+      .populate("quizz")
+      .exec();
+
+    if (!student) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    res.json({ courses: student.enrolledCourses });
+
+    return res.status(200).json({
+      message: "student details has been fecthed successfully",
+      student,
+    });
+  } catch (error) {
+    console.log("error fetching course", error);
+    res.status(500).json({ message: "Course fecthing  failed" });
+  }
+};
+
 // get A Course
 export const getSingleCourse = async (req, res) => {
   try {
