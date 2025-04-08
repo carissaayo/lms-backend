@@ -35,6 +35,7 @@ export const createCourse = async (req, res) => {
           }
         : null,
       instructor,
+      isSubmitted: true,
     };
 
     const newCourse = new Course(newData);
