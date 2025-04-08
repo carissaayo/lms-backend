@@ -27,6 +27,7 @@ const courseSchema = new mongoose.Schema(
       default: false,
     },
     isPublished: { type: Boolean, default: false },
+    isSubmitted: { type: Boolean, default: false },
     price: { type: String, required: true },
     image: {
       url: {
