@@ -40,8 +40,11 @@ export const registerForCourse = async (req, res) => {
     if (!user.completedLectures) {
       user.completedLectures = {};
     }
+    if (!user.progress) {
+      user.progress = {};
+    }
     user.completedLectures[courseId] = [];
-
+    user.progress[courseId] = 0;
     getAcourse.studentsEnrolled.push(user);
 
     await getAcourse.save();
@@ -333,7 +336,6 @@ export const addCompletedLecture = async (req, res) => {
       return res.status(404).json({ message: "Course Id is required" });
     }
     const course = await Course.findById(courseId);
-    console.log(course);
 
     if (!course) return res.status(404).json({ message: "Course not found" });
 
@@ -345,7 +347,6 @@ export const addCompletedLecture = async (req, res) => {
     // Add lectureId only if it's not already marked
     if (!student.completedLectures[courseId].includes(lectureId)) {
       student.completedLectures[courseId].push(lectureId);
-      await student.save();
     }
 
     // Calculate progress
@@ -353,11 +354,13 @@ export const addCompletedLecture = async (req, res) => {
     const completed = student.completedLectures[courseId].length;
     const progress = totalLectures > 0 ? (completed / totalLectures) * 100 : 0;
 
+    // Update progress object
+    student.progress[courseId] = Math.round(progress);
+
+    await student.save();
+
     return res.status(200).json({
       message: "Lecture marked as completed",
-      progress: Math.round(progress),
-      totalLectures,
-      completedLectures: completed,
     });
   } catch (error) {
     console.error(error);

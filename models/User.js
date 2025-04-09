@@ -22,8 +22,12 @@ const userSchema = new mongoose.Schema(
       },
     ],
     completedLectures: {
-      type: Map,
-      of: [String],
+      type: Object,
+      default: {},
+    },
+    progress: {
+      type: Object,
+      default: {},
     },
     avatar: {
       url: { type: String },
