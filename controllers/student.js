@@ -303,3 +303,53 @@ export const submitAssignment = async (req, res) => {
     res.status(500).json({ message: "Assignment  failed" });
   }
 };
+
+export const addCompletedLecture = async (req, res) => {
+  const { lectureId } = req.params;
+  const { courseId } = req.body;
+
+  try {
+    const student = await User.findOne({
+      _id: req.user.id,
+      deleted: false,
+      role: "student",
+    });
+
+    if (!student || student.role !== "student" || !student.isVerified) {
+      return res.status(401).json({
+        message: "you are not authorized",
+      });
+    }
+
+    const course = await Course.findById(courseId);
+    if (!course) return res.status(404).json({ message: "Course not found" });
+
+    // Initialize if not existing
+    if (!student.completedLectures[courseId]) {
+      student.completedLectures[courseId] = [];
+    }
+
+    // Add lectureId only if it's not already marked
+    if (!student.completedLectures[courseId].includes(lectureId)) {
+      student.completedLectures[courseId].push(lectureId);
+      await student.save();
+    }
+
+    // Calculate progress
+    const totalLectures = course.lectures.length;
+    const completed = student.completedLectures[courseId].length;
+    const progress = totalLectures > 0 ? (completed / totalLectures) * 100 : 0;
+
+    return res.status(200).json({
+      message: "Lecture marked as completed",
+      progress: Math.round(progress),
+      totalLectures,
+      completedLectures: completed,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "Marking lecture completed failed" });
+  }
+};

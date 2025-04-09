@@ -17,7 +17,6 @@ import {
   deleteAllLectureInACourse,
   getAllLecturesInACourse,
 } from "../controllers/lectures.js";
-import { registerForCourse } from "../controllers/student.js";
 
 const router = express.Router();
 
@@ -28,7 +27,6 @@ router.get("/instructor/:instructor", getAllCoursesByAnInstructor);
 
 // Protected Course Routes For Students
 router.get("/course/:id", getAllLecturesInACourse);
-router.post("/:courseId/register", verifyToken, registerForCourse);
 
 // Protected Course Routes For Instructors
 router.post("/create", verifyToken, upload.single("image"), createCourse);

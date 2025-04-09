@@ -7,6 +7,7 @@ import bodyParser from "body-parser";
 // routes
 import authRouter from "./routes/auth.js";
 import userRouter from "./routes/users.js";
+import studentRouter from "./routes/student.js";
 import courseRouter from "./routes/course.js";
 import lectureRouter from "./routes/lecture.js";
 import uploadRouter from "./routes/uploadFiles.js";
@@ -32,6 +33,7 @@ mongoose
   .catch((err) => console.log(`Error Connecting to MongoDb ${err}`));
 
 app.use("/api/users", userRouter);
+app.use("/api/students", studentRouter);
 app.use("/api", authRouter);
 app.use("/api/courses", courseRouter);
 app.use("/api/lectures", lectureRouter);

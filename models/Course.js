@@ -40,6 +40,7 @@ const courseSchema = new mongoose.Schema(
 
       caption: String,
     },
+
     lectures: [
       {
         type: mongoose.Schema.Types.ObjectId,

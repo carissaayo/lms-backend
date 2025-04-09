@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema(
         ref: "Course",
       },
     ],
+    completedLectures: {
+      type: Map,
+      of: [String],
+    },
     avatar: {
       url: { type: String },
     },

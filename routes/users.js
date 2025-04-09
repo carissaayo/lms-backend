@@ -20,7 +20,7 @@ const router = express.Router();
 router.post("/register", createUser);
 router.post("/login", loginUser);
 router.get("/user/:id", getSingleUser);
-router.get("/user-details/:userId", verifyToken, getStudentDetails);
+
 router.get("/user-by-admin/:id", verifyToken, getSingleUserByAdmin);
 router.put("/user/:id/make-admin", verifyToken, makeUserAdmin);
 
