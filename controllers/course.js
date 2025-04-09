@@ -56,6 +56,45 @@ export const createCourse = async (req, res) => {
   }
 };
 
+// Submit Course for Approval
+export const submitCourseForApproval = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const course = await Course.findOne({ _id: id, deleted: false });
+    if (!course) {
+      return res.status(401).json({
+        message: "such course isn't available",
+      });
+    }
+
+    console.log(req.user.id, course.instructor);
+
+    if (
+      req.user.role !== "instructor" ||
+      req.user.id !== course.instructor.toString()
+    ) {
+      return res.status(401).json({
+        message: "You are not authorized",
+      });
+    }
+
+    if (course.isSubmitted) {
+      return res.status(401).json({
+        message: "course has been submitted already",
+      });
+    }
+
+    return res.status(200).json({
+      message: "course has been submitted for approval ",
+      course: course,
+    });
+  } catch (error) {
+    console.log("error submitting course", error);
+    res.status(500).json({ message: "Course Submission  failed" });
+  }
+};
+
 // get A Course
 export const getSingleCourse = async (req, res) => {
   try {
@@ -86,41 +125,37 @@ export const getSingleCourse = async (req, res) => {
 };
 
 // Approve A Course
-export const approveCourseByAdmin = async (req, res) => {
+export const approveCourseByModerator = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const isItDeleted = await Course.findOne({ _id: id, deleted: true });
-
-    if (isItDeleted) {
-      return res.status(401).json({
-        message: "course has been deleted",
-        isItDeleted,
-      });
-    }
-
-    if (!req.user.isAdmin) {
+    if (req.user.role !== "moderator") {
       return res.status(401).json({
         message:
           "Access Denied, you don't have permission to perform this action",
       });
     }
 
-    const approveCourse = await Course.findById({ _id: id });
-
-    approveCourse.isApproved = !approveCourse.isApproved;
-
-    if (!approveCourse) {
+    const course = await Course.findOne({ _id: id, deleted: false });
+    if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
-    await approveCourse.save();
+    if (course.isApproved) {
+      return res
+        .status(401)
+        .json({ message: "Course has been approved already" });
+    }
+    course.isApproved = true;
+    course.approvedBy = req.user.id;
+    course.approvalDate = new Date();
+    await course.save();
     return res.status(200).json({
       message: "course has been approved successfully",
-      course: approveCourse,
+      course: course,
     });
   } catch (error) {
-    console.log("error fetching course", error);
-    res.status(500).json({ message: "Course fecthing  failed" });
+    console.log("error approving course", error);
+    res.status(500).json({ message: "Course Approving failed" });
   }
 };
 

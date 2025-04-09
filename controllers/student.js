@@ -25,7 +25,10 @@ export const registerForCourse = async (req, res) => {
         .json("Only verified students can reguster for a course");
     }
 
-    const getAcourse = await Course.findById({ _id: courseId });
+    const getAcourse = await Course.findOne({
+      _id: courseId,
+      isPublished: true,
+    });
     if (!getAcourse) {
       return res.status(401).json({
         message: "Course isn't available",
@@ -33,6 +36,12 @@ export const registerForCourse = async (req, res) => {
     }
 
     user.enrolledCourses.push(getAcourse);
+    // To track course progress
+    if (!user.completedLectures) {
+      user.completedLectures = {};
+    }
+    user.completedLectures[courseId] = [];
+
     getAcourse.studentsEnrolled.push(user);
 
     await getAcourse.save();
@@ -320,8 +329,12 @@ export const addCompletedLecture = async (req, res) => {
         message: "you are not authorized",
       });
     }
-
+    if (!courseId) {
+      return res.status(404).json({ message: "Course Id is required" });
+    }
     const course = await Course.findById(courseId);
+    console.log(course);
+
     if (!course) return res.status(404).json({ message: "Course not found" });
 
     // Initialize if not existing

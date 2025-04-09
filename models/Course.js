@@ -27,6 +27,14 @@ const courseSchema = new mongoose.Schema(
       default: false,
     },
     isPublished: { type: Boolean, default: false },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", //moderator
+    },
+    approvalDate: {
+      type: Date,
+    },
+
     isSubmitted: { type: Boolean, default: false },
     price: { type: String, required: true },
     image: {
